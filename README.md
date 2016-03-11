@@ -37,4 +37,4 @@ Example usage:
     // Stop the connector
     connector.stop();
 
-See _com.salesforce.emp.connector.LoginExample_ for full example.
+See [Login Example](https://git.soma.salesforce.com/MessagingPlatform/emp-connector/blob/master/src/test/java/com/salesforce/emp/connector/LoginExample.java) for full example.
