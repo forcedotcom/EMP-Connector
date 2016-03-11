@@ -55,6 +55,11 @@ public class Konnnektor {
         public String getTopic() {
             return topic;
         }
+
+        @Override
+        public String toString() {
+            return String.format("Subscription [%s:%s]", getTopic(), getReplayFrom());
+        }
     }
 
     public static long REPLAY_FROM_EARLIEST = -2L;

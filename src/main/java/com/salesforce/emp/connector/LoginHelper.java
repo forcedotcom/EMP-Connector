@@ -22,6 +22,9 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class LoginHelper {
 
+    private static final String FAULTSTRING_END = "</faultstring>";
+    private static final String FAULTSTRING = "<faultstring>";
+
     private static class LoginResponseParser extends DefaultHandler {
 
         private boolean inServerUrl;
@@ -108,8 +111,18 @@ public class LoginHelper {
         post.header("SOAPAction", "''");
         post.header("PrettyPrint", "Yes");
         ContentResponse response = post.send();
-        if (response.getStatus() != 200) { throw new IllegalStateException(
-                String.format("Unable to login, response: %s", response.getStatus())); }
+        if (response.getStatus() != 200) {
+            String content = response.getContentAsString();
+            int start = content.indexOf(FAULTSTRING);
+            if (start > 0) {
+                int end = content.indexOf(FAULTSTRING_END);
+                if (end > 0) { throw new IllegalStateException(String.format("Unable to login, response: %s : %s",
+                        response.getStatus(), content.substring(start + FAULTSTRING.length(), end))); }
+            }
+            throw new IllegalStateException(
+                    String.format("Unable to login, response: %s\n%s", response.getStatus(), content));
+
+        }
 
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
