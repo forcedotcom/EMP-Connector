@@ -23,7 +23,7 @@ Example usage:
     }
     
     // Subscribe to a topic
-    Future<TopicSubscription> future = connector.subscribe(argv[2], replayFrom, consumer);
+    Future<TopicSubscription> future = connector.subscribe("my-topic", replayFrom, consumer);
     
     // Block and wait for the subscription to succeed for 60 seconds
     TopicSubscription subscription = future.get(60, TimeUnit.SECONDS);
