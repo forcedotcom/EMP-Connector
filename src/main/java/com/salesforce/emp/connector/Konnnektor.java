@@ -6,9 +6,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSessionChannel;
-import org.cometd.bayeux.client.ClientSessionChannel.MessageListener;
 import org.cometd.client.BayeuxClient;
 import org.cometd.client.BayeuxClient.State;
 import org.cometd.client.transport.LongPollingTransport;
@@ -118,27 +116,31 @@ public class Konnnektor {
         }
     }
 
-    public Subscription subscribe(String topic, long replayFrom, Consumer<Map<String, Object>> consumer) {
+    public Future<Subscription> subscribe(String topic, long replayFrom, Consumer<Map<String, Object>> consumer) {
         if (!running.get()) { throw new IllegalStateException(
                 String.format("Connector[%s} has not been started", parameters.endpoint())); }
         if (replay.putIfAbsent(topic, replayFrom) != null) { throw new IllegalStateException(
                 String.format("Already subscribed to %s [%s]", topic, parameters.endpoint())); }
         ClientSessionChannel channel = client.getChannel(topic);
-        MessageListener listener = new MessageListener() {
-            @Override
-            public void onMessage(ClientSessionChannel channel, Message message) {
-                consumer.accept(message.getDataAsMap());
+        SubscriptionImpl subscription = new SubscriptionImpl(topic);
+        CompletableFuture<Subscription> future = new CompletableFuture<>();
+        channel.subscribe((c, message) -> consumer.accept(message.getDataAsMap()), (c, message) -> {
+            if (message.isSuccessful()) {
+                future.complete(subscription);
+            } else {
+                future.completeExceptionally(
+                        new IllegalStateException(String.format("Unable to subscribe to %s replayFrom: %s [%s]\n%s",
+                                topic, replayFrom, parameters.endpoint(), message.getDataAsMap())));
             }
-        };
-        channel.subscribe(listener);
-        return new SubscriptionImpl(topic);
+        });
+        return future;
     }
 
-    public Subscription subscribeEarliest(String topic, Consumer<Map<String, Object>> consumer) {
+    public Future<Subscription> subscribeEarliest(String topic, Consumer<Map<String, Object>> consumer) {
         return subscribe(topic, REPLAY_FROM_EARLIEST, consumer);
     }
 
-    public Subscription subscribeTip(String topic, Consumer<Map<String, Object>> consumer) {
+    public Future<Subscription> subscribeTip(String topic, Consumer<Map<String, Object>> consumer) {
         return subscribe(topic, REPLAY_FROM_TIP, consumer);
     }
 

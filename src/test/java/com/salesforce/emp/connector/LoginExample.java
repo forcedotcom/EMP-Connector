@@ -1,6 +1,8 @@
 package com.salesforce.emp.connector;
 
 import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import static com.salesforce.emp.connector.LoginHelper.*;
 
@@ -27,6 +29,8 @@ public class LoginExample {
         if (argv.length == 4) {
             replayFrom = Long.parseLong(argv[3]);
         }
-        connector.subscribe(argv[2], replayFrom, consumer);
+        Future<Subscription> future = connector.subscribe(argv[2], replayFrom, consumer);
+        Subscription subscription = future.get(60, TimeUnit.SECONDS);
+        System.out.println(String.format("Subscribed: %s", subscription));
     }
 }
