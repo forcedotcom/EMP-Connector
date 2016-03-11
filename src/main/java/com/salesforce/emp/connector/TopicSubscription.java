@@ -6,7 +6,7 @@ package com.salesforce.emp.connector;
  * @author hal.hildebrand
  * @since 138
  */
-public interface Subscription {
+public interface TopicSubscription {
 
     /**
      * Cancel the subscription

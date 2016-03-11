@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * @since 202
  */
 public class Konnnektor {
-    private class SubscriptionImpl implements Subscription {
+    private class SubscriptionImpl implements TopicSubscription {
         private final String topic;
 
         private SubscriptionImpl(String topic) {
@@ -116,14 +116,14 @@ public class Konnnektor {
         }
     }
 
-    public Future<Subscription> subscribe(String topic, long replayFrom, Consumer<Map<String, Object>> consumer) {
+    public Future<TopicSubscription> subscribe(String topic, long replayFrom, Consumer<Map<String, Object>> consumer) {
         if (!running.get()) { throw new IllegalStateException(
                 String.format("Connector[%s} has not been started", parameters.endpoint())); }
         if (replay.putIfAbsent(topic, replayFrom) != null) { throw new IllegalStateException(
                 String.format("Already subscribed to %s [%s]", topic, parameters.endpoint())); }
         ClientSessionChannel channel = client.getChannel(topic);
         SubscriptionImpl subscription = new SubscriptionImpl(topic);
-        CompletableFuture<Subscription> future = new CompletableFuture<>();
+        CompletableFuture<TopicSubscription> future = new CompletableFuture<>();
         channel.subscribe((c, message) -> consumer.accept(message.getDataAsMap()), (c, message) -> {
             if (message.isSuccessful()) {
                 future.complete(subscription);
@@ -136,11 +136,11 @@ public class Konnnektor {
         return future;
     }
 
-    public Future<Subscription> subscribeEarliest(String topic, Consumer<Map<String, Object>> consumer) {
+    public Future<TopicSubscription> subscribeEarliest(String topic, Consumer<Map<String, Object>> consumer) {
         return subscribe(topic, REPLAY_FROM_EARLIEST, consumer);
     }
 
-    public Future<Subscription> subscribeTip(String topic, Consumer<Map<String, Object>> consumer) {
+    public Future<TopicSubscription> subscribeTip(String topic, Consumer<Map<String, Object>> consumer) {
         return subscribe(topic, REPLAY_FROM_TIP, consumer);
     }
 

@@ -29,8 +29,8 @@ public class LoginExample {
         if (argv.length == 4) {
             replayFrom = Long.parseLong(argv[3]);
         }
-        Future<Subscription> future = connector.subscribe(argv[2], replayFrom, consumer);
-        Subscription subscription = future.get(60, TimeUnit.SECONDS);
+        Future<TopicSubscription> future = connector.subscribe(argv[2], replayFrom, consumer);
+        TopicSubscription subscription = future.get(60, TimeUnit.SECONDS);
         System.out.println(String.format("Subscribed: %s", subscription));
     }
 }
