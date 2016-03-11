@@ -2,8 +2,7 @@ package com.salesforce.emp.connector;
 
 import java.net.HttpCookie;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -31,7 +30,7 @@ public class Konnnektor {
 
         public void cancel() {
             replay.remove(topic);
-            if (client != null) {
+            if (running.get() && client != null) {
                 client.getChannel(topic).unsubscribe();
             }
         }
@@ -42,17 +41,29 @@ public class Konnnektor {
 
     }
 
+    public static long REPLAY_FROM_EARLIEST = -2L;
+    public static long REPLAY_FROM_TIP = -1L;
+
     private static String AUTHORIZATION = "Authorization";
     private static final Logger log = LoggerFactory.getLogger(Konnnektor.class);
 
     private volatile BayeuxClient client;
-    private final HttpClient httpClient = new HttpClient();
+    private final HttpClient httpClient;
     private final BayeuxParameters parameters;
     private final ConcurrentMap<String, Long> replay = new ConcurrentHashMap<>();
     private final AtomicBoolean running = new AtomicBoolean();
+    private final ScheduledExecutorService scheduler;
+    private volatile ScheduledFuture<?> keepAlive;
 
     public Konnnektor(BayeuxParameters parameters) {
+        this(parameters, Executors.newSingleThreadScheduledExecutor());
+    }
+
+    public Konnnektor(BayeuxParameters parameters, ScheduledExecutorService scheduler) {
         this.parameters = parameters;
+        httpClient = new HttpClient(parameters.sslContextFactory());
+        httpClient.getProxyConfiguration().getProxies().addAll(parameters.proxies());
+        this.scheduler = scheduler;
     }
 
     /**
@@ -63,44 +74,54 @@ public class Konnnektor {
      * @return true if connection was established, false otherwise
      */
     public boolean start(long handshakeTimeout) {
-        if (running.compareAndSet(false, true)) {
-            replay.clear();
-            try {
-                httpClient.start();
-            } catch (Exception e) {
-                log.error("Unable to start HTTP transport[{}]", parameters.endpoint(), e);
-                running.set(false);
-                return false;
-            }
-            LongPollingTransport httpTransport = new LongPollingTransport(parameters.longPollingOptions(),
-                    httpClient) {};
-            client = new BayeuxClient(parameters.endpoint().toExternalForm(), httpTransport);
-            client.addExtension(new ReplayExtension(replay));
-            client.putCookie(new HttpCookie(AUTHORIZATION, parameters.bearerToken()));
-            boolean handshook = client.handshake(handshakeTimeout) == State.CONNECTED;
-            if (!handshook) {
-                running.set(false);
-            }
-            return handshook;
-        }
+        if (running.compareAndSet(false, true)) { return connect(handshakeTimeout); }
         return true;
+    }
+
+    private boolean connect(long handshakeTimeout) {
+        replay.clear();
+        try {
+            httpClient.start();
+        } catch (Exception e) {
+            log.error("Unable to start HTTP transport[{}]", parameters.endpoint(), e);
+            running.set(false);
+            return false;
+        }
+        LongPollingTransport httpTransport = new LongPollingTransport(parameters.longPollingOptions(), httpClient) {};
+        client = new BayeuxClient(parameters.endpoint().toExternalForm(), httpTransport);
+        client.addExtension(new ReplayExtension(replay));
+        client.putCookie(new HttpCookie(AUTHORIZATION, parameters.bearerToken()));
+        boolean handshook = client.handshake(handshakeTimeout) == State.CONNECTED;
+        if (!handshook) {
+            running.set(false);
+        } else {
+            keepAlive = scheduler.scheduleAtFixedRate(() -> {
+                if (running.get()) {
+                    client.handshake();
+                }
+            }, parameters.keepAlive(), parameters.keepAlive(), parameters.keepAliveUnit());
+        }
+        return handshook;
     }
 
     /**
      * Stop the connector
      */
     public void stop() {
-        if (running.compareAndSet(true, false)) {
-            if (client != null) {
-                client.disconnect();
-            }
-            if (httpClient != null) {
-                try {
-                    httpClient.stop();
-                } catch (Exception e) {
-                    log.error("Unable to stop HTTP transport[{}]", parameters.endpoint(), e);
-                    running.set(false);
-                }
+        if (!running.compareAndSet(true, false)) { return; }
+        if (keepAlive != null) {
+            keepAlive.cancel(true);
+        }
+        if (client != null) {
+            client.disconnect();
+            client = null;
+        }
+        if (httpClient != null) {
+            try {
+                httpClient.stop();
+            } catch (Exception e) {
+                log.error("Unable to stop HTTP transport[{}]", parameters.endpoint(), e);
+                running.set(false);
             }
         }
     }
@@ -119,5 +140,13 @@ public class Konnnektor {
         };
         channel.subscribe(listener);
         return new Subscription(topic);
+    }
+
+    public Subscription subscribeEarliest(String topic, Consumer<Map<String, Object>> consumer) {
+        return subscribe(topic, REPLAY_FROM_EARLIEST, consumer);
+    }
+
+    public Subscription subscribeTip(String topic, Consumer<Map<String, Object>> consumer) {
+        return subscribe(topic, REPLAY_FROM_TIP, consumer);
     }
 }

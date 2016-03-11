@@ -24,6 +24,7 @@
             </snapshots>
         </repository>
     </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.cometd.java</groupId>
@@ -31,11 +32,13 @@
             <version>3.0.9</version>
         </dependency>
         <dependency>
-            <groupId>org.cometd.java</groupId>
-            <artifactId>cometd-java-websocket-javax-client</artifactId>
-            <version>3.0.9</version>
-        </dependency> 
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.6</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
