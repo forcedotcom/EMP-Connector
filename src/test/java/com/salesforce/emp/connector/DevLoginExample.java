@@ -29,7 +29,18 @@ public class DevLoginExample {
         if (argv.length == 5) {
             replayFrom = Long.parseLong(argv[4]);
         }
-        TopicSubscription subscription = connector.subscribe(argv[3], replayFrom, consumer).get(5, TimeUnit.SECONDS);
+        TopicSubscription subscription;
+        try {
+            subscription = connector.subscribe(argv[3], replayFrom, consumer).get(5, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            System.err.println(e.getCause().toString());
+            System.exit(1);
+            throw e.getCause();
+        } catch (TimeoutException e) { 
+            System.err.println("Timed out subscribing");
+            System.exit(1);
+            throw e.getCause();
+        }
 
         System.out.println(String.format("Subscribed: %s", subscription));
     }

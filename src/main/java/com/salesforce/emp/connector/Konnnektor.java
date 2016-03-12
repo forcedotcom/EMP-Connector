@@ -149,8 +149,9 @@ public class Konnnektor {
             if (message.isSuccessful()) {
                 future.complete(subscription);
             } else {
+                Object error = message.get(ERROR);
                 future.completeExceptionally(
-                        new CannotSubscribe(parameters.endpoint(), topic, replayFrom, message.get(ERROR)));
+                        new CannotSubscribe(parameters.endpoint(), topic, replayFrom, error != null ? error : message));
             }
         });
         return future;
