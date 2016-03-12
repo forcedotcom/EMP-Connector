@@ -18,15 +18,11 @@ Example usage:
     Konnnektor connector = new Konnnektor(params);
     
     // Wait for handshake with Streaming API
-    if (!connector.start(60000)) {
-        throw new IllegalStateException(String.format("Unable to handshake to replay endpoint: %s", params.endpoint()));
-    }
+    connector.start().get(5, TimeUnit.SECONDS);
     
     // Subscribe to a topic
-    Future<TopicSubscription> future = connector.subscribe("my-topic", replayFrom, consumer);
-    
-    // Block and wait for the subscription to succeed for 60 seconds
-    TopicSubscription subscription = future.get(60, TimeUnit.SECONDS);
+    // Block and wait for the subscription to succeed for 5 seconds
+    TopicSubscription subscription = connector.subscribe("my-topic", replayFrom, consumer).get(5, TimeUnit.SECONDS);
     
     // Here's our subscription
     System.out.println(String.format("Subscribed: %s", subscription));

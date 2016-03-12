@@ -1,6 +1,6 @@
 package com.salesforce.emp.connector;
 
-import java.net.HttpCookie;
+import java.net.ConnectException;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -8,9 +8,9 @@ import java.util.function.Consumer;
 
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.client.BayeuxClient;
-import org.cometd.client.BayeuxClient.State;
 import org.cometd.client.transport.LongPollingTransport;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
  * @since 202
  */
 public class Konnnektor {
+    private static final String ERROR = "error";
+
     private class SubscriptionImpl implements TopicSubscription {
         private final String topic;
 
@@ -94,9 +96,11 @@ public class Konnnektor {
      *            - milliseconds to wait until handshake has been completed
      * @return true if connection was established, false otherwise
      */
-    public boolean start(long handshakeTimeout) {
-        if (running.compareAndSet(false, true)) { return connect(handshakeTimeout); }
-        return true;
+    public Future<Boolean> start() {
+        if (running.compareAndSet(false, true)) { return connect(); }
+        CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
+        future.complete(true);
+        return future;
     }
 
     /**
@@ -106,6 +110,7 @@ public class Konnnektor {
         if (!running.compareAndSet(true, false)) { return; }
         if (keepAlive != null) {
             keepAlive.cancel(true);
+            keepAlive = null;
         }
         if (client != null) {
             client.disconnect();
@@ -116,11 +121,22 @@ public class Konnnektor {
                 httpClient.stop();
             } catch (Exception e) {
                 log.error("Unable to stop HTTP transport[{}]", parameters.endpoint(), e);
-                running.set(false);
             }
         }
     }
 
+    /**
+     * Subscribe to a topic, receiving events after the replayFrom position
+     * 
+     * @param topic
+     *            - the topic to subscribe to
+     * @param replayFrom
+     *            - the replayFrom position in the event stream
+     * @param consumer
+     *            - the consumer of the events
+     * @return a Future returning the Subscription - on completion returns a Subscription or throws a CannotSubscribe
+     *         exception
+     */
     public Future<TopicSubscription> subscribe(String topic, long replayFrom, Consumer<Map<String, Object>> consumer) {
         if (!running.get()) { throw new IllegalStateException(
                 String.format("Connector[%s} has not been started", parameters.endpoint())); }
@@ -134,44 +150,74 @@ public class Konnnektor {
                 future.complete(subscription);
             } else {
                 future.completeExceptionally(
-                        new IllegalStateException(String.format("Unable to subscribe to %s replayFrom: %s [%s]\n%s",
-                                topic, replayFrom, parameters.endpoint(), message.getDataAsMap())));
+                        new CannotSubscribe(parameters.endpoint(), topic, replayFrom, message.get(ERROR)));
             }
         });
         return future;
     }
 
+    /**
+     * Subscribe to a topic, receiving events from the earliest event position in the stream
+     * 
+     * @param topic
+     *            - the topic to subscribe to
+     * @param consumer
+     *            - the consumer of the events
+     * @return a Future returning the Subscription - on completion returns a Subscription or throws a CannotSubscribe
+     *         exception
+     */
     public Future<TopicSubscription> subscribeEarliest(String topic, Consumer<Map<String, Object>> consumer) {
         return subscribe(topic, REPLAY_FROM_EARLIEST, consumer);
     }
 
+    /**
+     * Subscribe to a topic, receiving events from the latest event position in the stream
+     * 
+     * @param topic
+     *            - the topic to subscribe to
+     * @param consumer
+     *            - the consumer of the events
+     * @return a Future returning the Subscription - on completion returns a Subscription or throws a CannotSubscribe
+     *         exception
+     */
     public Future<TopicSubscription> subscribeTip(String topic, Consumer<Map<String, Object>> consumer) {
         return subscribe(topic, REPLAY_FROM_TIP, consumer);
     }
 
-    private boolean connect(long handshakeTimeout) {
+    private Future<Boolean> connect() {
+        CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
         replay.clear();
         try {
             httpClient.start();
         } catch (Exception e) {
             log.error("Unable to start HTTP transport[{}]", parameters.endpoint(), e);
             running.set(false);
-            return false;
+            future.complete(false);
+            return future;
         }
-        LongPollingTransport httpTransport = new LongPollingTransport(parameters.longPollingOptions(), httpClient) {};
+        LongPollingTransport httpTransport = new LongPollingTransport(parameters.longPollingOptions(), httpClient) {
+            @Override
+            protected void customize(Request request) {
+                request.header(AUTHORIZATION, parameters.bearerToken());
+            }
+        };
         client = new BayeuxClient(parameters.endpoint().toExternalForm(), httpTransport);
         client.addExtension(new ReplayExtension(replay));
-        client.putCookie(new HttpCookie(AUTHORIZATION, parameters.bearerToken()));
-        boolean handshook = client.handshake(handshakeTimeout) == State.CONNECTED;
-        if (!handshook) {
-            running.set(false);
-        } else {
-            keepAlive = scheduler.scheduleAtFixedRate(() -> {
-                if (running.get()) {
-                    client.handshake();
-                }
-            }, parameters.keepAlive(), parameters.keepAlive(), parameters.keepAliveUnit());
-        }
-        return handshook;
+        client.handshake((c, m) -> {
+            if (!m.isSuccessful()) {
+                future.completeExceptionally(new ConnectException(
+                        String.format("Cannot connect [%s] : %s", parameters.endpoint(), m.get(ERROR))));
+                running.set(false);
+            } else {
+                keepAlive = scheduler.scheduleAtFixedRate(() -> {
+                    if (running.get()) {
+                        client.handshake();
+                    }
+                }, parameters.keepAlive(), parameters.keepAlive(), parameters.keepAliveUnit());
+                future.complete(true);
+            }
+        });
+
+        return future;
     }
 }

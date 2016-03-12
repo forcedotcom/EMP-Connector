@@ -1,6 +1,8 @@
 package com.salesforce.emp.connector;
 
+import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
@@ -22,55 +24,60 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class LoginHelper {
 
-    private static final String FAULTSTRING_END = "</faultstring>";
-    private static final String FAULTSTRING = "<faultstring>";
-
     private static class LoginResponseParser extends DefaultHandler {
 
-        private boolean inServerUrl;
-        private boolean inSessionId;
+        private boolean reading = false;
+        private String buffer;
 
         private String serverUrl;
         private String sessionId;
+        private String faultstring;
 
         @Override
         public void characters(char[] ch, int start, int length) {
-            if (inSessionId) sessionId = new String(ch, start, length);
-            if (inServerUrl) serverUrl = new String(ch, start, length);
+            if (reading) buffer = new String(ch, start, length);
         }
 
         @Override
         public void endElement(String uri, String localName, String qName) {
-            if (localName != null) {
-                if (localName.equals("sessionId")) {
-                    inSessionId = false;
-                }
-
-                if (localName.equals("serverUrl")) {
-                    inServerUrl = false;
-                }
+            reading = false;
+            switch (localName) {
+            case "sessionId":
+                sessionId = buffer;
+                break;
+            case "serverUrl":
+                serverUrl = buffer;
+                break;
+            case "faultstring":
+                faultstring = buffer;
+                break;
+            default:
             }
+            buffer = null;
         }
 
         @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes) {
-            if (localName != null) {
-                if (localName.equals("sessionId")) {
-                    inSessionId = true;
-                }
-
-                if (localName.equals("serverUrl")) {
-                    inServerUrl = true;
-                }
+            switch (localName) {
+            case "sessionId":
+                reading = true;
+                break;
+            case "serverUrl":
+                reading = true;
+                break;
+            case "faultstring":
+                reading = true;
+                break;
+            default:
             }
         }
     }
 
     static final String LOGIN_ENDPOINT = "https://login.salesforce.com";
-    private static final String COMETD_REPLAY = "/cometd/replay";
+
+    private static final String COMETD_REPLAY = "/cometd/replay/";
 
     private static final String ENV_END = "</soapenv:Body></soapenv:Envelope>";
-
     private static final String ENV_START = "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' "
             + "xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' "
             + "xmlns:urn='urn:partner.soap.sforce.com'><soapenv:Body>";
@@ -100,10 +107,10 @@ public class LoginHelper {
         });
     }
 
-    public static BayeuxParameters login(URL loginEndpoint, String username, String password, BayeuxParameters in)
-            throws Exception {
-        HttpClient client = new HttpClient(in.sslContextFactory());
-        client.getProxyConfiguration().getProxies().addAll(in.proxies());
+    public static BayeuxParameters login(URL loginEndpoint, String username, String password,
+            BayeuxParameters parameters) throws Exception {
+        HttpClient client = new HttpClient(parameters.sslContextFactory());
+        client.getProxyConfiguration().getProxies().addAll(parameters.proxies());
         client.start();
         URL endpoint = new URL(loginEndpoint, getSoapUri());
         Request post = client.POST(endpoint.toURI());
@@ -111,51 +118,29 @@ public class LoginHelper {
         post.header("SOAPAction", "''");
         post.header("PrettyPrint", "Yes");
         ContentResponse response = post.send();
-        if (response.getStatus() != 200) {
-            String content = response.getContentAsString();
-            int start = content.indexOf(FAULTSTRING);
-            if (start > 0) {
-                int end = content.indexOf(FAULTSTRING_END);
-                if (end > 0) { throw new IllegalStateException(String.format("Unable to login, response: %s : %s",
-                        response.getStatus(), content.substring(start + FAULTSTRING.length(), end))); }
-            }
-            throw new IllegalStateException(
-                    String.format("Unable to login, response: %s\n%s", response.getStatus(), content));
-
-        }
-
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
         SAXParser saxParser = spf.newSAXParser();
 
         LoginResponseParser parser = new LoginResponseParser();
-        saxParser.parse(response.getContentAsString(), parser);
+        saxParser.parse(new ByteArrayInputStream(response.getContent()), parser);
 
-        if (parser.sessionId == null || parser.serverUrl == null) { throw new IllegalStateException(
-                String.format("Login Failed to %s\n%s", endpoint, response)); }
+        String sessionId = parser.sessionId;
+        if (sessionId == null || parser.serverUrl == null) { throw new ConnectException(
+                String.format("Unable to login: %s", parser.faultstring)); }
 
         URL soapEndpoint = new URL(parser.serverUrl);
         URL replayEndpoint = new URL(soapEndpoint.getProtocol(), soapEndpoint.getHost(), soapEndpoint.getPort(),
-                new StringBuilder().append(COMETD_REPLAY).append(1).toString());
-        return new BayeuxParameters() {
+                new StringBuilder().append(COMETD_REPLAY).append(parameters.version()).toString());
+        return new DelegatingBayeuxParameters(parameters) {
             @Override
             public String bearerToken() {
-                return parser.sessionId;
+                return sessionId;
             }
 
             @Override
             public URL endpoint() {
                 return replayEndpoint;
-            }
-
-            @Override
-            public int maxBufferSize() {
-                return in.maxBufferSize();
-            }
-
-            @Override
-            public int maxNetworkDelay() {
-                return in.maxNetworkDelay();
             }
         };
     }

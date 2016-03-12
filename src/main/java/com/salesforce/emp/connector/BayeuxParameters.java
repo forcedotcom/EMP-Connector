@@ -75,4 +75,11 @@ public interface BayeuxParameters {
     default SslContextFactory sslContextFactory() {
         return new SslContextFactory(true);
     }
+
+    /**
+     * @return the Streaming API version
+     */
+    default String version() {
+        return "37";
+    }
 }

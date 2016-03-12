@@ -1,10 +1,10 @@
 package com.salesforce.emp.connector;
 
+import static com.salesforce.emp.connector.LoginHelper.login;
+
 import java.util.Map;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import static com.salesforce.emp.connector.LoginHelper.*;
 
 /**
  * An example of using the EMP connector
@@ -22,7 +22,7 @@ public class LoginExample {
         if (argv.length == 4) {
             replayFrom = Long.parseLong(argv[3]);
         }
-        
+
         BayeuxParameters params;
         try {
             params = login(argv[0], argv[1]);
@@ -31,15 +31,14 @@ public class LoginExample {
             System.exit(1);
             throw e;
         }
-        
+
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
         Konnnektor connector = new Konnnektor(params);
-        if (!connector.start(60000)) {
-            System.err.println(String.format("Unable to handshake to replay endpoint: %s", params.endpoint()));
-            System.exit(1);
-        }
-        Future<TopicSubscription> future = connector.subscribe(argv[2], replayFrom, consumer);
-        TopicSubscription subscription = future.get(60, TimeUnit.SECONDS);
+
+        connector.start().get(5, TimeUnit.SECONDS);
+
+        TopicSubscription subscription = connector.subscribe(argv[2], replayFrom, consumer).get(5, TimeUnit.SECONDS);
+
         System.out.println(String.format("Subscribed: %s", subscription));
     }
 }
