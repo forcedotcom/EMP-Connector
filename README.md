@@ -2,8 +2,9 @@
 A simplified connector to the Enterprise Messaging Platform
 * * *
 The EMP connector is available in the Salesforce Nexus repository
+
      https://nexus.soma.salesforce.com/nexus/content/repositories/releases
-     
+
 To use, add the maven dependency:
 
     <dependency> 
