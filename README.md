@@ -1,5 +1,8 @@
 # emp-connector
-A simplified connector to the Enterprise Messaging Platform
+A simplified connector to the Enterprise Messaging Platform.
+
+This connector provides support for SSL, HTTP proxies and supports both the long polling and websocket
+streaming transports.  Easy subscription management and full support for event replay is provided.
 * * *
 The EMP connector is available in the Salesforce Nexus repository
 
@@ -17,7 +20,7 @@ To use, add the maven dependency:
 Example usage:
 
     
-    // Replay from the start of the event window
+    // Replay from the start of the event window - may be any valid replayFrom position in the event stream
     long replayFrom = Konnnektor.REPLAY_FROM_EARLIEST; 
     
     // get parameters from login
