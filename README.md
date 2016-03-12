@@ -33,7 +33,7 @@ Example usage:
     
     // Subscribe to a topic
     // Block and wait for the subscription to succeed for 5 seconds
-    TopicSubscription subscription = connector.subscribe("my-topic", replayFrom, consumer).get(5, TimeUnit.SECONDS);
+    TopicSubscription subscription = connector.subscribe("/topic/myTopic", replayFrom, consumer).get(5, TimeUnit.SECONDS);
     
     // Here's our subscription
     System.out.println(String.format("Subscribed: %s", subscription));

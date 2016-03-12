@@ -1,21 +1,21 @@
 package com.salesforce.emp.connector;
 
-import static com.salesforce.emp.connector.LoginHelper.login;
-
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * An example of using the EMP connector using login credentials
+ * An example of using the EMP connector using bearer tokens
  *
  * @author hal.hildebrand
  * @since 202
  */
-public class LoginExample {
+public class BearerTokenExample {
     public static void main(String[] argv) throws Exception {
-        if (argv.length < 3 || argv.length > 4) {
-            System.err.println("Usage: LoginExample username password topic [replayFrom]");
+        if (argv.length < 2 || argv.length > 4) {
+            System.err.println("Usage: BearerTokenExample url token topic [replayFrom]");
             System.exit(1);
         }
         long replayFrom = Konnnektor.REPLAY_FROM_EARLIEST;
@@ -23,14 +23,22 @@ public class LoginExample {
             replayFrom = Long.parseLong(argv[3]);
         }
 
-        BayeuxParameters params;
-        try {
-            params = login(argv[0], argv[1]);
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            System.exit(1);
-            throw e;
-        }
+        BayeuxParameters params = new BayeuxParameters() {
+
+            @Override
+            public URL endpoint() {
+                try {
+                    return new URL(argv[0]);
+                } catch (MalformedURLException e) {
+                    throw new IllegalArgumentException(String.format("Unable to create url: %s", argv[0]), e);
+                }
+            }
+
+            @Override
+            public String bearerToken() {
+                return argv[1];
+            }
+        };
 
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
         Konnnektor connector = new Konnnektor(params);
