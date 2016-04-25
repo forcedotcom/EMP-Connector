@@ -1,7 +1,6 @@
 package com.salesforce.emp.connector;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,11 +17,11 @@ import org.cometd.bayeux.client.ClientSession.Extension.Adapter;
  */
 public class ReplayExtension extends Adapter {
     private static final String EXTENSION_NAME = "replay";
-    private final ConcurrentMap<String, Long> dataMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Long> dataMap;
     private final AtomicBoolean supported = new AtomicBoolean();
 
-    public ReplayExtension(Map<String, Long> dataMap) {
-        this.dataMap.putAll(dataMap);
+    public ReplayExtension(ConcurrentMap<String, Long> dataMap) {
+        this.dataMap = dataMap;
     }
 
     @Override
