@@ -3,10 +3,8 @@ A simplified connector to the Enterprise Messaging Platform.
 
 This connector provides support for SSL, HTTP proxies and supports both the long polling and websocket
 streaming transports.  Easy subscription management and full support for event replay is provided.
-* * *
-The EMP connector is available in the Salesforce Nexus repository
 
-     https://nexus.soma.salesforce.com/nexus/content/repositories/releases
+* * *
 
 To use, add the maven dependency:
 
