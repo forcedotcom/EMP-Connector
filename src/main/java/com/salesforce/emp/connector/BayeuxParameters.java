@@ -76,13 +76,13 @@ public interface BayeuxParameters {
      * @return the SslContextFactory for establishing secure outbound connections
      */
     default SslContextFactory sslContextFactory() {
-        return new SslContextFactory(true);
+        return new SslContextFactory();
     }
 
     /**
      * @return the Streaming API version
      */
     default String version() {
-        return "37";
+        return "36.0";
     }
 }

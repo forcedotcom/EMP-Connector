@@ -1,8 +1,6 @@
-/* 
- * Copyright (c) 2016, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license. 
- * For full license text, see LICENSE.TXT file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+/*
+ * Copyright (c) 2016, salesforce.com, inc. All rights reserved. Licensed under the BSD 3-Clause license. For full
+ * license text, see LICENSE.TXT file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 package com.salesforce.emp.connector;
 
@@ -88,7 +86,7 @@ public class LoginHelper {
             + "xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' "
             + "xmlns:urn='urn:partner.soap.sforce.com'><soapenv:Body>";
 
-    // The enterprise SOAP API endpoint used for the login call in this example.
+    // The enterprise SOAP API endpoint used for the login call
     private static final String SERVICES_SOAP_PARTNER_ENDPOINT = "/services/Soap/u/22.0/";
 
     public static BayeuxParameters login(String username, String password) throws Exception {
@@ -125,6 +123,10 @@ public class LoginHelper {
         post.header("PrettyPrint", "Yes");
         ContentResponse response = post.send();
         SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        spf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         spf.setNamespaceAware(true);
         SAXParser saxParser = spf.newSAXParser();
 

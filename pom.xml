@@ -7,35 +7,24 @@
     <name>EMP Connector</name>
     <description>A simplified connector for EMP</description>
     
-    <properties>
-        <nexus.repo.id>nexus</nexus.repo.id>
-        <nexus.repo.url>https://nexus.soma.salesforce.com/nexus/content/repositories/releases/</nexus.repo.url>
-    </properties>
-
     <repositories>
         <repository>
-            <id>${nexus.repo.id}</id>
-            <url>${nexus.repo.url}</url>
+          <id>central</id>
+          <url>https://repo1.maven.org/maven2</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
         </repository>
-        <repository>
-            <id>sfdc-nexus-thirdparty-snapshots</id>
-            <url>https://nexus.soma.salesforce.com/nexus/content/repositories/thirdparty-snapshots/</url>
-        </repository>
-        <repository>
-            <id>Maven Central</id>
-            <url>http://repo1.maven.org/maven2/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>${nexus.repo.id}</id>
-            <url>${nexus.repo.url}</url>
-        </repository>
-    </distributionManagement>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <url>https://repo1.maven.org/maven2</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+        </pluginRepository>
+      </pluginRepositories>
 
     <dependencies>
         <dependency>
@@ -49,24 +38,16 @@
             <version>1.1.6</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.2</version>
-                <configuration>
-                    <useReleaseProfile>false</useReleaseProfile>
-                    <releaseProfiles>sfdc-release</releaseProfiles>
-                    <goals>deploy</goals>
-                    <localCheckout>true</localCheckout>
-                    <pushChanges>true</pushChanges>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <arguments>-B</arguments>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
