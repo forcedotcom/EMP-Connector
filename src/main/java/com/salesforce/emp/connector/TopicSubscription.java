@@ -10,7 +10,7 @@ package com.salesforce.emp.connector;
  * A subscription to a topic
  * 
  * @author hal.hildebrand
- * @since 138
+ * @since 202
  */
 public interface TopicSubscription {
 
