@@ -1,11 +1,10 @@
-/* 
- * Copyright (c) 2016, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license. 
- * For full license text, see LICENSE.TXT file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+/*
+ * Copyright (c) 2016, salesforce.com, inc. All rights reserved. Licensed under the BSD 3-Clause license. For full
+ * license text, see LICENSE.TXT file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 package com.salesforce.emp.connector;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +25,23 @@ public interface BayeuxParameters {
     /**
      * @return the URL of the platform Streaming API endpoint
      */
-    URL endpoint();
+    default URL endpoint() {
+        String path = new StringBuilder().append(LoginHelper.COMETD_REPLAY).append(version()).toString();
+        try {
+            return new URL(host(), path);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(
+                    String.format("Unable to create url: %s:%s", host().toExternalForm(), path), e);
+        }
+    }
+
+    default URL host() {
+        try {
+            return new URL(LoginHelper.LOGIN_ENDPOINT);
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException(String.format("Unable to form URL for %s", LoginHelper.LOGIN_ENDPOINT));
+        }
+    }
 
     /**
      * @return the keep alive interval duration

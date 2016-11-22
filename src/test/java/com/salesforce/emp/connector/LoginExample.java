@@ -36,7 +36,7 @@ public class LoginExample {
             e.printStackTrace(System.err);
             System.exit(1);
             throw e;
-        }
+        } 
 
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
         Konnnektor connector = new Konnnektor(params);

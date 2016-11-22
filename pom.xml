@@ -6,25 +6,25 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>EMP Connector</name>
     <description>A simplified connector for EMP</description>
-    
+
     <repositories>
         <repository>
-          <id>central</id>
-          <url>https://repo1.maven.org/maven2</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
         </repository>
-      </repositories>
-      <pluginRepositories>
+    </repositories>
+    <pluginRepositories>
         <pluginRepository>
-          <id>central</id>
-          <url>https://repo1.maven.org/maven2</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
         </pluginRepository>
-      </pluginRepositories>
+    </pluginRepositories>
 
     <dependencies>
         <dependency>
@@ -59,6 +59,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>

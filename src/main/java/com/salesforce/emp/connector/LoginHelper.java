@@ -78,9 +78,7 @@ public class LoginHelper {
     }
 
     static final String LOGIN_ENDPOINT = "https://login.salesforce.com";
-
-    private static final String COMETD_REPLAY = "/cometd/replay/";
-
+    public static final String COMETD_REPLAY = "/cometd/replay/";
     private static final String ENV_END = "</soapenv:Body></soapenv:Envelope>";
     private static final String ENV_START = "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' "
             + "xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' "
