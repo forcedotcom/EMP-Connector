@@ -6,6 +6,10 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>EMP Connector</name>
     <description>A simplified connector for EMP</description>
+    
+    <properties>
+        <module.main.class>com.salesforce.emp.connector.example.LoginExample</module.main.class>
+    </properties>
 
     <repositories>
         <repository>
