@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * @author hal.hildebrand
  * @since 202
  */
-public class Konnnektor {
+public class EmpConnector {
     private static final String ERROR = "error";
 
     private class SubscriptionImpl implements TopicSubscription {
@@ -74,7 +74,7 @@ public class Konnnektor {
     public static long REPLAY_FROM_TIP = -1L;
 
     private static String AUTHORIZATION = "Authorization";
-    private static final Logger log = LoggerFactory.getLogger(Konnnektor.class);
+    private static final Logger log = LoggerFactory.getLogger(EmpConnector.class);
 
     private volatile BayeuxClient client;
     private final HttpClient httpClient;
@@ -84,11 +84,11 @@ public class Konnnektor {
     private final AtomicBoolean running = new AtomicBoolean();
     private final ScheduledExecutorService scheduler;
 
-    public Konnnektor(BayeuxParameters parameters) {
+    public EmpConnector(BayeuxParameters parameters) {
         this(parameters, Executors.newSingleThreadScheduledExecutor());
     }
 
-    public Konnnektor(BayeuxParameters parameters, ScheduledExecutorService scheduler) {
+    public EmpConnector(BayeuxParameters parameters, ScheduledExecutorService scheduler) {
         this.parameters = parameters;
         httpClient = new HttpClient(parameters.sslContextFactory());
         httpClient.getProxyConfiguration().getProxies().addAll(parameters.proxies());

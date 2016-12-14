@@ -28,7 +28,7 @@ Example usage:
     Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
     
     // The EMP connector
-    Konnnektor connector = new Konnnektor(params);
+    EmpConnector connector = new EmpConnector(params);
     
     // Wait for handshake with Streaming API
     connector.start().get(5, TimeUnit.SECONDS);
@@ -46,4 +46,4 @@ Example usage:
     // Stop the connector
     connector.stop();
 
-See [Login Example](https://::tbd::/emp-connector/blob/master/src/test/java/com/salesforce/emp/connector/LoginExample.java) for full example.
+See [Login Example](src/main/java/com/salesforce/emp/connector/example/LoginExample.java) for full example.

@@ -4,13 +4,17 @@
  * Licensed under the BSD 3-Clause license. 
  * For full license text, see LICENSE.TXT file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
-package com.salesforce.emp.connector;
+package com.salesforce.emp.connector.example;
 
 import static com.salesforce.emp.connector.LoginHelper.login;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
+import com.salesforce.emp.connector.BayeuxParameters;
+import com.salesforce.emp.connector.EmpConnector;
+import com.salesforce.emp.connector.TopicSubscription;
 
 /**
  * An example of using the EMP connector using login credentials
@@ -24,7 +28,7 @@ public class LoginExample {
             System.err.println("Usage: LoginExample username password topic [replayFrom]");
             System.exit(1);
         }
-        long replayFrom = Konnnektor.REPLAY_FROM_EARLIEST;
+        long replayFrom = EmpConnector.REPLAY_FROM_EARLIEST;
         if (argv.length == 4) {
             replayFrom = Long.parseLong(argv[3]);
         }
@@ -39,7 +43,7 @@ public class LoginExample {
         } 
 
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
-        Konnnektor connector = new Konnnektor(params);
+        EmpConnector connector = new EmpConnector(params);
 
         connector.start().get(5, TimeUnit.SECONDS);
 

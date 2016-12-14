@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license. 
  * For full license text, see LICENSE.TXT file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
-package com.salesforce.emp.connector;
+package com.salesforce.emp.connector.example;
 
 import static com.salesforce.emp.connector.LoginHelper.login;
 
@@ -12,6 +12,10 @@ import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+
+import com.salesforce.emp.connector.BayeuxParameters;
+import com.salesforce.emp.connector.EmpConnector;
+import com.salesforce.emp.connector.TopicSubscription;
 
 /**
  * An example of using the EMP connector
@@ -27,11 +31,11 @@ public class DevLoginExample {
         }
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
         BayeuxParameters params = login(new URL(argv[0]), argv[1], argv[2]);
-        Konnnektor connector = new Konnnektor(params);
+        EmpConnector connector = new EmpConnector(params);
 
         connector.start().get(5, TimeUnit.SECONDS);
 
-        long replayFrom = Konnnektor.REPLAY_FROM_TIP;
+        long replayFrom = EmpConnector.REPLAY_FROM_TIP;
         if (argv.length == 5) {
             replayFrom = Long.parseLong(argv[4]);
         }
