@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public class EmpConnector {
     private static final String ERROR = "error";
+    private static final String FAILURE = "failure";
 
     private class SubscriptionImpl implements TopicSubscription {
         private final String topic;
@@ -156,6 +157,9 @@ public class EmpConnector {
                 future.complete(subscription);
             } else {
                 Object error = message.get(ERROR);
+                if (error == null) {
+                    error = message.get(FAILURE);
+                }
                 future.completeExceptionally(
                         new CannotSubscribe(parameters.endpoint(), topic, replayFrom, error != null ? error : message));
             }
@@ -212,8 +216,12 @@ public class EmpConnector {
         client.addExtension(new ReplayExtension(replay));
         client.handshake((c, m) -> {
             if (!m.isSuccessful()) {
+                Object error = m.get(ERROR);
+                if (error == null) {
+                    error = m.get(FAILURE);
+                }
                 future.completeExceptionally(new ConnectException(
-                        String.format("Cannot connect [%s] : %s", parameters.endpoint(), m.get(ERROR))));
+                        String.format("Cannot connect [%s] : %s", parameters.endpoint(), error)));
                 running.set(false);
             } else {
                 keepAlive = scheduler.scheduleAtFixedRate(() -> {
