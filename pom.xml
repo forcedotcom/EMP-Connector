@@ -6,7 +6,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>EMP Connector</name>
     <description>A simplified connector for EMP</description>
-    
+
     <properties>
         <module.main.class>com.salesforce.emp.connector.example.LoginExample</module.main.class>
     </properties>
@@ -63,7 +63,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
