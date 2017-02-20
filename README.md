@@ -19,7 +19,7 @@ Example usage:
 
     
     // Replay from the start of the event window - may be any valid replayFrom position in the event stream
-    long replayFrom = Konnnektor.REPLAY_FROM_EARLIEST; 
+    long replayFrom = EmpConnector.REPLAY_FROM_EARLIEST; 
     
     // get parameters from login
     BayeuxParameters params = login("foo@bar.com", "password");
