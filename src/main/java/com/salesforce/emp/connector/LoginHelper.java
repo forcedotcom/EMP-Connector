@@ -77,7 +77,7 @@ public class LoginHelper {
         }
     }
 
-    public static final String COMETD_REPLAY = "/cometd/replay/";
+    public static final String COMETD_REPLAY = "/cometd/";
     public static final String COMETD_REPLAY_OLD = "/cometd/replay/";
     static final String LOGIN_ENDPOINT = "https://login.salesforce.com";
     private static final String ENV_END = "</soapenv:Body></soapenv:Envelope>";
