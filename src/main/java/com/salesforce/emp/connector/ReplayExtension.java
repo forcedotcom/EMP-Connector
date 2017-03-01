@@ -31,19 +31,6 @@ public class ReplayExtension extends Adapter {
     }
 
     @Override
-    public boolean rcv(ClientSession session, Message.Mutable message) {
-        Object data = message.get(EXTENSION_NAME);
-        if (this.supported.get() && data != null) {
-            try {
-                dataMap.put(message.getChannel(), (Long)data);
-            } catch (ClassCastException e) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
     public boolean rcvMeta(ClientSession session, Message.Mutable message) {
         switch (message.getChannel()) {
         case Channel.META_HANDSHAKE:
