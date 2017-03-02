@@ -222,7 +222,7 @@ public class EmpConnector {
         client = new BayeuxClient(parameters.endpoint().toExternalForm(), httpTransport) {
             @Override
             public void onFailure(Throwable failure, List<? extends Message> messages) {
-                failure.printStackTrace();
+                log.error("connection failure, reconnecting", failure);
                 exec.execute(() -> reconnect());
             }
         };
