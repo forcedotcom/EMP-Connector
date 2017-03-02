@@ -248,16 +248,6 @@ public class EmpConnector {
 
     private void reconnect() {
         reconnect(1);
-        subscriptions.forEach(subscription -> {
-            try {
-                subscription.resubscribe().get(parameters.resubsribeTimeout(), parameters.reconnectTimeoutUnit());
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.error("Cannot resubscribe to the topic {} replay from {}", subscription.topic,
-                        subscription.getReplayFrom());
-                stop();
-                return;
-            }
-        });
     }
 
     private void reconnect(int attempt) {
@@ -269,6 +259,7 @@ public class EmpConnector {
         exec.execute(() -> {
             try {
                 connect().get(parameters.reconnectTimeout(), parameters.reconnectTimeoutUnit());
+                resubscribe();
             } catch (InterruptedException e) {
                 log.warn("reconnect interrupted, discontinuing");
                 return;
@@ -278,6 +269,19 @@ public class EmpConnector {
             } catch (TimeoutException e) {
                 log.warn("Connection attempt {} timed out", attempt);
                 reconnect(attempt + 1);
+            }
+        });
+    }
+
+    private void resubscribe() {
+        subscriptions.forEach(subscription -> {
+            try {
+                subscription.resubscribe().get(parameters.resubsribeTimeout(), parameters.reconnectTimeoutUnit());
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                log.error("Cannot resubscribe to the topic {} replay from {}", subscription.topic,
+                        subscription.getReplayFrom());
+                stop();
+                return;
             }
         });
     }
