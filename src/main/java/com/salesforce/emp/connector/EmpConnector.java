@@ -123,11 +123,13 @@ public class EmpConnector {
      * @return true if connection was established, false otherwise
      */
     public Future<Boolean> start() {
-        if (running.compareAndSet(false, true)) { return connect(); }
+        if (!running.compareAndSet(false, true)) {
+            CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
+            future.complete(true);
+            return future;
+        }
         log.info("starting connector");
-        CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
-        future.complete(true);
-        return future;
+        return connect();
     }
 
     /**
