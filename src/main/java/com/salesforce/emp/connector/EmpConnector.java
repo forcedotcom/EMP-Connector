@@ -4,6 +4,7 @@
  */
 package com.salesforce.emp.connector;
 
+import java.io.EOFException;
 import java.net.ConnectException;
 import java.util.List;
 import java.util.Map;
@@ -213,17 +214,23 @@ public class EmpConnector {
             future.complete(false);
             return future;
         }
+
         LongPollingTransport httpTransport = new LongPollingTransport(parameters.longPollingOptions(), httpClient) {
             @Override
             protected void customize(Request request) {
                 request.header(AUTHORIZATION, parameters.bearerToken());
             }
         };
+
         client = new BayeuxClient(parameters.endpoint().toExternalForm(), httpTransport) {
             @Override
             public void onFailure(Throwable failure, List<? extends Message> messages) {
-                log.error("connection failure, reconnecting", failure);
-                exec.execute(() -> reconnect());
+                if (failure instanceof EOFException) {
+                    log.error("connection failure, reconnecting");
+                    exec.execute(() -> reconnect());
+                } else {
+                    log.error("connection failure, reconnecting", failure);
+                }
             }
         };
         client.addExtension(new ReplayExtension(replay));
@@ -251,6 +258,7 @@ public class EmpConnector {
     }
 
     private void reconnect(int attempt) {
+        if (!running.get()) { return; }
         if (attempt > parameters.reconnectAttempts()) {
             log.error("Cannot reconnect to the server after {} attempts", parameters.reconnectAttempts());
             stop();
@@ -290,7 +298,14 @@ public class EmpConnector {
             Consumer<Map<String, Object>> consumer, SubscriptionImpl subscription) {
         CompletableFuture<TopicSubscription> future = new CompletableFuture<>();
         ClientSessionChannel channel = client.getChannel(topic);
-        channel.subscribe((c, message) -> consumer.accept(message.getDataAsMap()), (c, message) -> {
+
+        channel.subscribe((c, message) -> {
+            try {
+                consumer.accept(message.getDataAsMap());
+            } catch (Throwable e) {
+                log.error(String.format("Error during consuming event on %s", topic, e));
+            }
+        }, (c, message) -> {
             if (message.isSuccessful()) {
                 log.debug("Subscription successful to {} replay from {}: ", topic, replayFrom);
                 future.complete(subscription);
