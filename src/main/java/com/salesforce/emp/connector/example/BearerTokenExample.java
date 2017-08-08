@@ -6,12 +6,12 @@ package com.salesforce.emp.connector.example;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import com.salesforce.emp.connector.BayeuxParameters;
 import com.salesforce.emp.connector.EmpConnector;
+import com.salesforce.emp.connector.EmpEvent;
 import com.salesforce.emp.connector.TopicSubscription;
 
 /**
@@ -48,7 +48,7 @@ public class BearerTokenExample {
             }
         };
 
-        Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
+        Consumer<EmpEvent<?>> consumer = event -> System.out.println(String.format("Received:%d\n%s", event.getReplayId(), event.getPayload()));
         EmpConnector connector = new EmpConnector(params);
 
         connector.start().get(5, TimeUnit.SECONDS);

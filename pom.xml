@@ -26,6 +26,12 @@
             <organization>Salesforce.com, Inc.</organization>
             <organizationUrl>http://www.salesforce.com</organizationUrl>
         </developer>
+        <developer>
+            <name>Lawrence McAlpin</name>
+            <email>lmcalpin@salesforce.com</email>
+            <organization>Salesforce.com, Inc.</organization>
+            <organizationUrl>http://www.salesforce.com</organizationUrl>
+        </developer>
     </developers>
 
     <scm>
@@ -65,6 +71,11 @@
     </distributionManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+	        <version>1.7.7</version>
+        </dependency>
         <dependency>
             <groupId>org.cometd.java</groupId>
             <artifactId>cometd-java-client</artifactId>

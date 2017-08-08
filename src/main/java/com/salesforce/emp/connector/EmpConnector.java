@@ -1,14 +1,18 @@
-/* 
- * Copyright (c) 2016, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license. 
- * For full license text, see LICENSE.TXT file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
+/*
+ * Copyright (c) 2016, salesforce.com, inc. All rights reserved. Licensed under the BSD 3-Clause license. For full
+ * license text, see LICENSE.TXT file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 package com.salesforce.emp.connector;
 
 import java.net.ConnectException;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -82,6 +86,7 @@ public class EmpConnector {
     private volatile ScheduledFuture<?> keepAlive;
     private final BayeuxParameters parameters;
     private final ConcurrentMap<String, Long> replay = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, String> payloadFormats = new ConcurrentHashMap<>();
     private final AtomicBoolean running = new AtomicBoolean();
     private final ScheduledExecutorService scheduler;
 
@@ -139,20 +144,25 @@ public class EmpConnector {
      *            - the topic to subscribe to
      * @param replayFrom
      *            - the replayFrom position in the event stream
+     * @param payloadFormat
+     *            - the format for the events
      * @param consumer
      *            - the consumer of the events
      * @return a Future returning the Subscription - on completion returns a Subscription or throws a CannotSubscribe
      *         exception
      */
-    public Future<TopicSubscription> subscribe(String topic, long replayFrom, Consumer<Map<String, Object>> consumer) {
+    public Future<TopicSubscription> subscribe(String topic, long replayFrom, PayloadFormat payloadFormat,
+            Consumer<EmpEvent<?>> consumer) {
         if (!running.get()) { throw new IllegalStateException(
                 String.format("Connector[%s} has not been started", parameters.endpoint())); }
         if (replay.putIfAbsent(topic, replayFrom) != null) { throw new IllegalStateException(
                 String.format("Already subscribed to %s [%s]", topic, parameters.endpoint())); }
+        if (payloadFormats.putIfAbsent(topic, payloadFormat.toString()) != null) { throw new IllegalStateException(
+                String.format("Already subscribed to %s [%s]", topic, parameters.endpoint())); }
         ClientSessionChannel channel = client.getChannel(topic);
         SubscriptionImpl subscription = new SubscriptionImpl(topic);
         CompletableFuture<TopicSubscription> future = new CompletableFuture<>();
-        channel.subscribe((c, message) -> consumer.accept(message.getDataAsMap()), (c, message) -> {
+        channel.subscribe((c, message) -> consumer.accept(payloadFormat.toEvent(message)), (c, message) -> {
             if (message.isSuccessful()) {
                 future.complete(subscription);
             } else {
@@ -160,11 +170,43 @@ public class EmpConnector {
                 if (error == null) {
                     error = message.get(FAILURE);
                 }
-                future.completeExceptionally(
-                        new CannotSubscribe(parameters.endpoint(), topic, replayFrom, error != null ? error : message));
+                future.completeExceptionally(new CannotSubscribe(parameters.endpoint(), topic, replayFrom,
+                        error != null ? error : message));
             }
         });
         return future;
+    }
+
+    /**
+     * Subscribe to a topic, receiving events after the replayFrom position
+     * 
+     * @param topic
+     *            - the topic to subscribe to
+     * @param replayFrom
+     *            - the replayFrom position in the event stream
+     * @param consumer
+     *            - the consumer of the events
+     * @return a Future returning the Subscription - on completion returns a Subscription or throws a CannotSubscribe
+     *         exception
+     */
+    public Future<TopicSubscription> subscribe(String topic, long replayFrom, Consumer<EmpEvent<?>> consumer) {
+        return subscribe(topic, replayFrom, PayloadFormat.EXPANDED, consumer);
+    }
+
+    /**
+     * Subscribe to a topic, receiving events from the earliest event position in the stream
+     * 
+     * @param topic
+     *            - the topic to subscribe to
+     * @param payloadFormat
+     *            - the format for the events
+     * @param consumer
+     *            - the consumer of the events
+     * @return a Future returning the Subscription - on completion returns a Subscription or throws a CannotSubscribe
+     *         exception
+     */
+    public Future<TopicSubscription> subscribeEarliest(String topic, PayloadFormat payloadFormat, Consumer<EmpEvent<?>> consumer) {
+        return subscribe(topic, REPLAY_FROM_EARLIEST, payloadFormat, consumer);
     }
 
     /**
@@ -177,8 +219,24 @@ public class EmpConnector {
      * @return a Future returning the Subscription - on completion returns a Subscription or throws a CannotSubscribe
      *         exception
      */
-    public Future<TopicSubscription> subscribeEarliest(String topic, Consumer<Map<String, Object>> consumer) {
-        return subscribe(topic, REPLAY_FROM_EARLIEST, consumer);
+    public Future<TopicSubscription> subscribeEarliest(String topic, Consumer<EmpEvent<?>> consumer) {
+        return subscribe(topic, REPLAY_FROM_EARLIEST, PayloadFormat.EXPANDED, consumer);
+    }
+
+    /**
+     * Subscribe to a topic, receiving events from the latest event position in the stream
+     * 
+     * @param topic
+     *            - the topic to subscribe to
+     * @param payloadFormat
+     *            - the format for the events
+     * @param consumer
+     *            - the consumer of the events
+     * @return a Future returning the Subscription - on completion returns a Subscription or throws a CannotSubscribe
+     *         exception
+     */
+    public Future<TopicSubscription> subscribeTip(String topic, PayloadFormat payloadFormat, Consumer<EmpEvent<?>> consumer) {
+        return subscribe(topic, REPLAY_FROM_TIP, payloadFormat, consumer);
     }
 
     /**
@@ -191,8 +249,8 @@ public class EmpConnector {
      * @return a Future returning the Subscription - on completion returns a Subscription or throws a CannotSubscribe
      *         exception
      */
-    public Future<TopicSubscription> subscribeTip(String topic, Consumer<Map<String, Object>> consumer) {
-        return subscribe(topic, REPLAY_FROM_TIP, consumer);
+    public Future<TopicSubscription> subscribeTip(String topic, Consumer<EmpEvent<?>> consumer) {
+        return subscribe(topic, REPLAY_FROM_TIP, PayloadFormat.EXPANDED, consumer);
     }
 
     private Future<Boolean> connect() {
@@ -214,6 +272,7 @@ public class EmpConnector {
         };
         client = new BayeuxClient(parameters.endpoint().toExternalForm(), httpTransport);
         client.addExtension(new ReplayExtension(replay));
+        client.addExtension(new FormatExtension(payloadFormats));
         client.handshake((c, m) -> {
             if (!m.isSuccessful()) {
                 Object error = m.get(ERROR);

@@ -79,7 +79,7 @@ public class LoginHelper {
 
     public static final String COMETD_REPLAY = "/cometd/";
     public static final String COMETD_REPLAY_OLD = "/cometd/replay/";
-    static final String LOGIN_ENDPOINT = "https://login.salesforce.com";
+    static final String LOGIN_ENDPOINT = "http://lmcalpin-wsl5.internal.salesforce.com:6109";
     private static final String ENV_END = "</soapenv:Body></soapenv:Envelope>";
     private static final String ENV_START = "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' "
             + "xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' "

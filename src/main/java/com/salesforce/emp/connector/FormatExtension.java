@@ -9,15 +9,15 @@ package com.salesforce.emp.connector;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * The Bayeux extension for replay
+ * The Bayeux extension for payload formats
  *
- * @author hal.hildebrand
- * @since 202
+ * @author lmcalpin
+ * @since 212
  */
-public class ReplayExtension extends ClientExtension<Long> {
-    private static final String EXTENSION_NAME = "replay";
+public class FormatExtension extends ClientExtension<String> {
+    private static final String EXTENSION_NAME = "payload.format";
 
-    public ReplayExtension(ConcurrentMap<String, Long> dataMap) {
+    public FormatExtension(ConcurrentMap<String, String> dataMap) {
         super(dataMap);
     }
 

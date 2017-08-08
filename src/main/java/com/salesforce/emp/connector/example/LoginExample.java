@@ -8,12 +8,13 @@ package com.salesforce.emp.connector.example;
 
 import static com.salesforce.emp.connector.LoginHelper.login;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import com.salesforce.emp.connector.BayeuxParameters;
 import com.salesforce.emp.connector.EmpConnector;
+import com.salesforce.emp.connector.EmpEvent;
+import com.salesforce.emp.connector.PayloadFormat;
 import com.salesforce.emp.connector.TopicSubscription;
 
 /**
@@ -42,12 +43,12 @@ public class LoginExample {
             throw e;
         } 
 
-        Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
+        Consumer<EmpEvent<?>> consumer = event -> System.out.println(String.format("Received:%d\n%s", event.getReplayId(), event.getPayload()));
         EmpConnector connector = new EmpConnector(params);
 
         connector.start().get(5, TimeUnit.SECONDS);
 
-        TopicSubscription subscription = connector.subscribe(argv[2], replayFrom, consumer).get(5, TimeUnit.SECONDS);
+        TopicSubscription subscription = connector.subscribe(argv[2], replayFrom, PayloadFormat.EXPANDED, consumer).get(5, TimeUnit.SECONDS);
 
         System.out.println(String.format("Subscribed: %s", subscription));
     }

@@ -25,7 +25,7 @@ Example usage:
     BayeuxParameters params = login("foo@bar.com", "password");
     
     // The event consumer
-    Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
+    Consumer<EmpEvent<?>> consumer = event -> System.out.println(String.format("Received:\n%s", event.getPayload()));
     
     // The EMP connector
     EmpConnector connector = new EmpConnector(params);
