@@ -7,8 +7,10 @@
 package com.salesforce.emp.connector;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
@@ -23,6 +25,9 @@ import org.cometd.bayeux.client.ClientSession.Extension.Adapter;
  */
 public class ReplayExtension extends Adapter {
     private static final String EXTENSION_NAME = "replay";
+    private static final String EVENT_KEY = "event";
+    private static final String REPLAY_ID_KEY = "replayId";
+
     private final ConcurrentMap<String, Long> dataMap;
     private final AtomicBoolean supported = new AtomicBoolean();
 
@@ -32,10 +37,10 @@ public class ReplayExtension extends Adapter {
 
     @Override
     public boolean rcv(ClientSession session, Message.Mutable message) {
-        Object data = message.get(EXTENSION_NAME);
-        if (this.supported.get() && data != null) {
+        Long replayId = getReplayId(message);
+        if (this.supported.get() && replayId != null) {
             try {
-                dataMap.put(message.getChannel(), (Long)data);
+                dataMap.put(message.getChannel(), replayId);
             } catch (ClassCastException e) {
                 return false;
             }
@@ -66,5 +71,22 @@ public class ReplayExtension extends Adapter {
             break;
         }
         return true;
+    }
+
+    private static Long getReplayId(Message.Mutable message) {
+        Map<String, Object> data = message.getDataAsMap();
+        @SuppressWarnings("unchecked")
+        Optional<Long> optional = resolve(() -> (Long)((Map<String, Object>)data.get(EVENT_KEY)).get(REPLAY_ID_KEY));
+        return optional.orElse(null);
+    }
+
+    private static <T> Optional<T> resolve(Supplier<T> resolver) {
+        try {
+            T result = resolver.get();
+            return Optional.ofNullable(result);
+        }
+        catch (NullPointerException e) {
+            return Optional.empty();
+        }
     }
 }
