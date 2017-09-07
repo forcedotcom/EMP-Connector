@@ -43,20 +43,6 @@ public interface BayeuxParameters {
         }
     }
 
-    /**
-     * @return the keep alive interval duration
-     */
-    default long keepAlive() {
-        return 60;
-    }
-
-    /**
-     * @return keep alive interval time unit
-     */
-    default TimeUnit keepAliveUnit() {
-        return TimeUnit.MINUTES;
-    }
-
     default Map<String, Object> longPollingOptions() {
         Map<String, Object> options = new HashMap<>();
         options.put("maxNetworkDelay", maxNetworkDelay());
@@ -85,6 +71,41 @@ public interface BayeuxParameters {
      */
     default Collection<? extends org.eclipse.jetty.client.ProxyConfiguration.Proxy> proxies() {
         return Collections.emptyList();
+    }
+
+    /**
+     * @return the number of times to attempt to reconnect
+     */
+    default int reconnectAttempts() {
+        return 10;
+    }
+
+    /**
+     * @return the reconnect timeout
+     */
+    default long reconnectTimeout() {
+        return 30;
+    }
+
+    /**
+     * @return the time unit for the reconnect timeout
+     */
+    default TimeUnit reconnectTimeoutUnit() {
+        return TimeUnit.SECONDS;
+    }
+
+    /**
+     * @return the resubsribe timeout
+     */
+    default long resubsribeTimeout() {
+        return 30;
+    }
+
+    /**
+     * @return the time unit for the resubsribe timeout
+     */
+    default TimeUnit resubsribeTimeoutUnit() {
+        return TimeUnit.SECONDS;
     }
 
     /**
