@@ -1,7 +1,7 @@
-# emp-connector
-A simplified connector to the Enterprise Messaging Platform.
+# emp-connector example
+A simplified connector example to the Enterprise Messaging Platform.
 
-This connector provides support for SSL, HTTP proxies and supports both the long polling and websocket
+This example connector provides support for SSL, HTTP proxies and supports both the long polling and websocket
 streaming transports.  Easy subscription management and full support for event replay is provided.
 
 * * *
@@ -14,6 +14,12 @@ To use, add the maven dependency:
         <version>0.0.1-SNAPSHOT</version>
     </dependency>
 * * *
+
+# Disclaimer
+Please note that this repository is example code and is not supported by Salesforce.  This code has not been rigorously tested nor performance tested for throughput and scale.
+
+This code is provided as an example only.  The underlying [CometD library](https://cometd.org/) is what provides the meat here, as the emp connector is a thin wrapper around this library.
+___
 
 Example usage:
 
