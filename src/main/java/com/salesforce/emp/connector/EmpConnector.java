@@ -30,9 +30,11 @@ public class EmpConnector {
 
     private class SubscriptionImpl implements TopicSubscription {
         private final String topic;
+        private final Consumer<Map<String, Object>> consumer;
 
-        private SubscriptionImpl(String topic) {
+        private SubscriptionImpl(String topic, Consumer<Map<String, Object>> consumer) {
             this.topic = topic;
+            this.consumer = consumer;
         }
 
         /*
@@ -44,6 +46,7 @@ public class EmpConnector {
             replay.remove(topic);
             if (running.get() && client != null) {
                 client.getChannel(topic).unsubscribe();
+                subscriptions.remove(topic);
             }
         }
 
@@ -69,6 +72,25 @@ public class EmpConnector {
         public String toString() {
             return String.format("Subscription [%s:%s]", getTopic(), getReplayFrom());
         }
+
+        Future<TopicSubscription> subscribe() {
+            Long replayFrom = getReplayFrom();
+            ClientSessionChannel channel = client.getChannel(topic);
+            CompletableFuture<TopicSubscription> future = new CompletableFuture<>();
+            channel.subscribe((c, message) -> consumer.accept(message.getDataAsMap()), (c, message) -> {
+                if (message.isSuccessful()) {
+                    future.complete(this);
+                } else {
+                    Object error = message.get(ERROR);
+                    if (error == null) {
+                        error = message.get(FAILURE);
+                    }
+                    future.completeExceptionally(
+                            new CannotSubscribe(parameters.endpoint(), topic, replayFrom, error != null ? error : message));
+                }
+            });
+            return future;
+        }
     }
 
     public static long REPLAY_FROM_EARLIEST = -2L;
@@ -85,6 +107,8 @@ public class EmpConnector {
     private final AtomicBoolean running = new AtomicBoolean();
     private final ScheduledExecutorService scheduler;
 
+    private ConcurrentMap<String, SubscriptionImpl> subscriptions;
+
     public EmpConnector(BayeuxParameters parameters) {
         this(parameters, Executors.newSingleThreadScheduledExecutor());
     }
@@ -94,17 +118,17 @@ public class EmpConnector {
         httpClient = new HttpClient(parameters.sslContextFactory());
         httpClient.getProxyConfiguration().getProxies().addAll(parameters.proxies());
         this.scheduler = scheduler;
+        this.subscriptions = new ConcurrentHashMap<>();
     }
 
     /**
-     * Start the connector
-     * 
-     * @param handshakeTimeout
-     *            - milliseconds to wait until handshake has been completed
+     * Start the connector.
      * @return true if connection was established, false otherwise
      */
     public Future<Boolean> start() {
-        if (running.compareAndSet(false, true)) { return connect(); }
+        if (running.compareAndSet(false, true)) {
+            return connect();
+        }
         CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
         future.complete(true);
         return future;
@@ -122,6 +146,7 @@ public class EmpConnector {
         if (client != null) {
             client.disconnect();
             client = null;
+            subscriptions.clear();
         }
         if (httpClient != null) {
             try {
@@ -134,7 +159,7 @@ public class EmpConnector {
 
     /**
      * Subscribe to a topic, receiving events after the replayFrom position
-     * 
+     *
      * @param topic
      *            - the topic to subscribe to
      * @param replayFrom
@@ -145,31 +170,25 @@ public class EmpConnector {
      *         exception
      */
     public Future<TopicSubscription> subscribe(String topic, long replayFrom, Consumer<Map<String, Object>> consumer) {
-        if (!running.get()) { throw new IllegalStateException(
-                String.format("Connector[%s} has not been started", parameters.endpoint())); }
-        if (replay.putIfAbsent(topic, replayFrom) != null) { throw new IllegalStateException(
-                String.format("Already subscribed to %s [%s]", topic, parameters.endpoint())); }
-        ClientSessionChannel channel = client.getChannel(topic);
-        SubscriptionImpl subscription = new SubscriptionImpl(topic);
-        CompletableFuture<TopicSubscription> future = new CompletableFuture<>();
-        channel.subscribe((c, message) -> consumer.accept(message.getDataAsMap()), (c, message) -> {
-            if (message.isSuccessful()) {
-                future.complete(subscription);
-            } else {
-                Object error = message.get(ERROR);
-                if (error == null) {
-                    error = message.get(FAILURE);
-                }
-                future.completeExceptionally(
-                        new CannotSubscribe(parameters.endpoint(), topic, replayFrom, error != null ? error : message));
-            }
-        });
-        return future;
+        if (!running.get()) {
+            throw new IllegalStateException(String.format("Connector[%s} has not been started",
+                    parameters.endpoint()));
+        }
+
+        if (replay.putIfAbsent(topic, replayFrom) != null) {
+            throw new IllegalStateException(String.format("Already subscribed to %s [%s]",
+                    topic, parameters.endpoint()));
+        }
+
+        SubscriptionImpl subscription = new SubscriptionImpl(topic, consumer);
+        subscriptions.put(topic, subscription);
+
+        return subscription.subscribe();
     }
 
     /**
      * Subscribe to a topic, receiving events from the earliest event position in the stream
-     * 
+     *
      * @param topic
      *            - the topic to subscribe to
      * @param consumer
@@ -183,7 +202,7 @@ public class EmpConnector {
 
     /**
      * Subscribe to a topic, receiving events from the latest event position in the stream
-     * 
+     *
      * @param topic
      *            - the topic to subscribe to
      * @param consumer
@@ -229,6 +248,9 @@ public class EmpConnector {
                         client.handshake();
                     }
                 }, parameters.keepAlive(), parameters.keepAlive(), parameters.keepAliveUnit());
+
+                subscriptions.values().forEach(SubscriptionImpl::subscribe);
+
                 future.complete(true);
             }
         });
