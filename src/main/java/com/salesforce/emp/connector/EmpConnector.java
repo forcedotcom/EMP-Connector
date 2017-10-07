@@ -8,6 +8,7 @@ package com.salesforce.emp.connector;
 
 import java.net.ConnectException;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -35,6 +36,7 @@ public class EmpConnector {
         private SubscriptionImpl(String topic, Consumer<Map<String, Object>> consumer) {
             this.topic = topic;
             this.consumer = consumer;
+            subscriptions.add(this);
         }
 
         /*
@@ -46,7 +48,7 @@ public class EmpConnector {
             replay.remove(topic);
             if (running.get() && client != null) {
                 client.getChannel(topic).unsubscribe();
-                subscriptions.remove(topic);
+                subscriptions.remove(this);
             }
         }
 
@@ -107,7 +109,7 @@ public class EmpConnector {
     private final AtomicBoolean running = new AtomicBoolean();
     private final ScheduledExecutorService scheduler;
 
-    private ConcurrentMap<String, SubscriptionImpl> subscriptions;
+    private final Set<SubscriptionImpl> subscriptions = new CopyOnWriteArraySet<>();
 
     public EmpConnector(BayeuxParameters parameters) {
         this(parameters, Executors.newSingleThreadScheduledExecutor());
@@ -118,7 +120,6 @@ public class EmpConnector {
         httpClient = new HttpClient(parameters.sslContextFactory());
         httpClient.getProxyConfiguration().getProxies().addAll(parameters.proxies());
         this.scheduler = scheduler;
-        this.subscriptions = new ConcurrentHashMap<>();
     }
 
     /**
@@ -181,7 +182,6 @@ public class EmpConnector {
         }
 
         SubscriptionImpl subscription = new SubscriptionImpl(topic, consumer);
-        subscriptions.put(topic, subscription);
 
         return subscription.subscribe();
     }
@@ -249,7 +249,7 @@ public class EmpConnector {
                     }
                 }, parameters.keepAlive(), parameters.keepAlive(), parameters.keepAliveUnit());
 
-                subscriptions.values().forEach(SubscriptionImpl::subscribe);
+                subscriptions.forEach(SubscriptionImpl::subscribe);
 
                 future.complete(true);
             }
