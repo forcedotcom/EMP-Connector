@@ -103,23 +103,16 @@ public class EmpConnector {
 
     private volatile BayeuxClient client;
     private final HttpClient httpClient;
-    private volatile ScheduledFuture<?> keepAlive;
     private final BayeuxParameters parameters;
     private final ConcurrentMap<String, Long> replay = new ConcurrentHashMap<>();
     private final AtomicBoolean running = new AtomicBoolean();
-    private final ScheduledExecutorService scheduler;
 
     private final Set<SubscriptionImpl> subscriptions = new CopyOnWriteArraySet<>();
 
     public EmpConnector(BayeuxParameters parameters) {
-        this(parameters, Executors.newSingleThreadScheduledExecutor());
-    }
-
-    public EmpConnector(BayeuxParameters parameters, ScheduledExecutorService scheduler) {
         this.parameters = parameters;
         httpClient = new HttpClient(parameters.sslContextFactory());
         httpClient.getProxyConfiguration().getProxies().addAll(parameters.proxies());
-        this.scheduler = scheduler;
     }
 
     /**
@@ -140,10 +133,6 @@ public class EmpConnector {
      */
     public void stop() {
         if (!running.compareAndSet(true, false)) { return; }
-        if (keepAlive != null) {
-            keepAlive.cancel(true);
-            keepAlive = null;
-        }
         if (client != null) {
             client.disconnect();
             client = null;
@@ -215,7 +204,7 @@ public class EmpConnector {
     }
 
     private Future<Boolean> connect() {
-        CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
         replay.clear();
         try {
             httpClient.start();
@@ -243,14 +232,7 @@ public class EmpConnector {
                         String.format("Cannot connect [%s] : %s", parameters.endpoint(), error)));
                 running.set(false);
             } else {
-                keepAlive = scheduler.scheduleAtFixedRate(() -> {
-                    if (running.get()) {
-                        client.handshake();
-                    }
-                }, parameters.keepAlive(), parameters.keepAlive(), parameters.keepAliveUnit());
-
                 subscriptions.forEach(SubscriptionImpl::subscribe);
-
                 future.complete(true);
             }
         });
