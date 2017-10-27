@@ -235,4 +235,16 @@ public class EmpConnector {
 
         return future;
     }
+
+    public boolean isDisconnected() {
+        return client.isDisconnected();
+    }
+
+    public boolean isConnected() {
+        return client.isConnected();
+    }
+
+    public boolean isHandshook() {
+        return client.isHandshook();
+    }
 }
