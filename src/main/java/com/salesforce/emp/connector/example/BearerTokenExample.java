@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import com.salesforce.emp.connector.BayeuxParameters;
 import com.salesforce.emp.connector.EmpConnector;
 import com.salesforce.emp.connector.TopicSubscription;
+import org.cometd.bayeux.Channel;
 
 /**
  * An example of using the EMP connector using bearer tokens
@@ -50,6 +51,10 @@ public class BearerTokenExample {
 
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
         EmpConnector connector = new EmpConnector(params);
+
+        connector.addListener(Channel.META_CONNECT, new LoggingListener(true, true))
+        .addListener(Channel.META_DISCONNECT, new LoggingListener(true, true))
+        .addListener(Channel.META_HANDSHAKE, new LoggingListener(true, true));
 
         connector.start().get(5, TimeUnit.SECONDS);
 

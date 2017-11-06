@@ -110,6 +110,7 @@ public class EmpConnector {
     private final ScheduledExecutorService scheduler;
 
     private final Set<SubscriptionImpl> subscriptions = new CopyOnWriteArraySet<>();
+    private final Set<MessageListenerInfo> listenerInfos = new CopyOnWriteArraySet<>();
 
     public EmpConnector(BayeuxParameters parameters) {
         this(parameters, Executors.newSingleThreadScheduledExecutor());
@@ -214,6 +215,27 @@ public class EmpConnector {
         return subscribe(topic, REPLAY_FROM_TIP, consumer);
     }
 
+    public EmpConnector addListener(String channel, ClientSessionChannel.MessageListener messageListener) {
+        listenerInfos.add(new MessageListenerInfo(channel, messageListener));
+        return this;
+    }
+
+    public boolean isConnected() {
+        return client != null && client.isConnected();
+    }
+
+    public boolean isDisconnected() {
+        return client != null && client.isDisconnected();
+    }
+
+    public boolean isHandshook() {
+        return client != null && client.isHandshook();
+    }
+
+    public long getLastReplayId(String topic) {
+        return replay.get(topic);
+    }
+
     private Future<Boolean> connect() {
         CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
         replay.clear();
@@ -225,14 +247,20 @@ public class EmpConnector {
             future.complete(false);
             return future;
         }
+
         LongPollingTransport httpTransport = new LongPollingTransport(parameters.longPollingOptions(), httpClient) {
             @Override
             protected void customize(Request request) {
                 request.header(AUTHORIZATION, parameters.bearerToken());
             }
         };
+
         client = new BayeuxClient(parameters.endpoint().toExternalForm(), httpTransport);
+
         client.addExtension(new ReplayExtension(replay));
+
+        addListeners(client);
+
         client.handshake((c, m) -> {
             if (!m.isSuccessful()) {
                 Object error = m.get(ERROR);
@@ -256,5 +284,29 @@ public class EmpConnector {
         });
 
         return future;
+    }
+
+    private void addListeners(BayeuxClient client) {
+        for (MessageListenerInfo info : listenerInfos) {
+            client.getChannel(info.getChannelName()).addListener(info.getMessageListener());
+        }
+    }
+
+    private static class MessageListenerInfo {
+        private String channelName;
+        private ClientSessionChannel.MessageListener messageListener;
+
+        public MessageListenerInfo(String channelName, ClientSessionChannel.MessageListener messageListener) {
+            this.channelName = channelName;
+            this.messageListener = messageListener;
+        }
+
+        public String getChannelName() {
+            return channelName;
+        }
+
+        public ClientSessionChannel.MessageListener getMessageListener() {
+            return messageListener;
+        }
     }
 }
