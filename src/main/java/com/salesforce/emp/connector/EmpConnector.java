@@ -13,6 +13,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.client.BayeuxClient;
 import org.cometd.client.transport.LongPollingTransport;
@@ -296,16 +297,16 @@ public class EmpConnector {
         private String channelName;
         private ClientSessionChannel.MessageListener messageListener;
 
-        public MessageListenerInfo(String channelName, ClientSessionChannel.MessageListener messageListener) {
+        MessageListenerInfo(String channelName, ClientSessionChannel.MessageListener messageListener) {
             this.channelName = channelName;
             this.messageListener = messageListener;
         }
 
-        public String getChannelName() {
+        String getChannelName() {
             return channelName;
         }
 
-        public ClientSessionChannel.MessageListener getMessageListener() {
+        ClientSessionChannel.MessageListener getMessageListener() {
             return messageListener;
         }
     }
