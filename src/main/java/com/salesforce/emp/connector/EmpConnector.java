@@ -13,6 +13,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.client.BayeuxClient;
 import org.cometd.client.transport.LongPollingTransport;
@@ -108,6 +109,7 @@ public class EmpConnector {
     private final AtomicBoolean running = new AtomicBoolean();
 
     private final Set<SubscriptionImpl> subscriptions = new CopyOnWriteArraySet<>();
+    private final Set<MessageListenerInfo> listenerInfos = new CopyOnWriteArraySet<>();
 
     public EmpConnector(BayeuxParameters parameters) {
         this.parameters = parameters;
@@ -203,6 +205,27 @@ public class EmpConnector {
         return subscribe(topic, REPLAY_FROM_TIP, consumer);
     }
 
+    public EmpConnector addListener(String channel, ClientSessionChannel.MessageListener messageListener) {
+        listenerInfos.add(new MessageListenerInfo(channel, messageListener));
+        return this;
+    }
+
+    public boolean isConnected() {
+        return client != null && client.isConnected();
+    }
+
+    public boolean isDisconnected() {
+        return client != null && client.isDisconnected();
+    }
+
+    public boolean isHandshook() {
+        return client != null && client.isHandshook();
+    }
+
+    public long getLastReplayId(String topic) {
+        return replay.get(topic);
+    }
+
     private Future<Boolean> connect() {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         replay.clear();
@@ -214,14 +237,20 @@ public class EmpConnector {
             future.complete(false);
             return future;
         }
+
         LongPollingTransport httpTransport = new LongPollingTransport(parameters.longPollingOptions(), httpClient) {
             @Override
             protected void customize(Request request) {
                 request.header(AUTHORIZATION, parameters.bearerToken());
             }
         };
+
         client = new BayeuxClient(parameters.endpoint().toExternalForm(), httpTransport);
+
         client.addExtension(new ReplayExtension(replay));
+
+        addListeners(client);
+
         client.handshake((c, m) -> {
             if (!m.isSuccessful()) {
                 Object error = m.get(ERROR);
@@ -238,5 +267,29 @@ public class EmpConnector {
         });
 
         return future;
+    }
+
+    private void addListeners(BayeuxClient client) {
+        for (MessageListenerInfo info : listenerInfos) {
+            client.getChannel(info.getChannelName()).addListener(info.getMessageListener());
+        }
+    }
+
+    private static class MessageListenerInfo {
+        private String channelName;
+        private ClientSessionChannel.MessageListener messageListener;
+
+        MessageListenerInfo(String channelName, ClientSessionChannel.MessageListener messageListener) {
+            this.channelName = channelName;
+            this.messageListener = messageListener;
+        }
+
+        String getChannelName() {
+            return channelName;
+        }
+
+        ClientSessionChannel.MessageListener getMessageListener() {
+            return messageListener;
+        }
     }
 }
