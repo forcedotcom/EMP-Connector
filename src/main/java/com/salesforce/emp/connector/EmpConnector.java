@@ -215,7 +215,7 @@ public class EmpConnector {
     }
 
     public boolean isDisconnected() {
-        return client != null && client.isDisconnected();
+        return client == null || client.isDisconnected();
     }
 
     public boolean isHandshook() {
