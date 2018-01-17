@@ -12,7 +12,9 @@ import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.client.BayeuxClient;
@@ -111,6 +113,9 @@ public class EmpConnector {
     private final Set<SubscriptionImpl> subscriptions = new CopyOnWriteArraySet<>();
     private final Set<MessageListenerInfo> listenerInfos = new CopyOnWriteArraySet<>();
 
+    private Function<Boolean, String> bearerTokenProvider;
+    private AtomicBoolean reauthenticate = new AtomicBoolean(false);
+
     public EmpConnector(BayeuxParameters parameters) {
         this.parameters = parameters;
         httpClient = new HttpClient(parameters.sslContextFactory());
@@ -123,6 +128,7 @@ public class EmpConnector {
      */
     public Future<Boolean> start() {
         if (running.compareAndSet(false, true)) {
+            addListener(Channel.META_CONNECT, new AuthFailureListener());
             return connect();
         }
         CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
@@ -138,7 +144,6 @@ public class EmpConnector {
         if (client != null) {
             client.disconnect();
             client = null;
-            subscriptions.clear();
         }
         if (httpClient != null) {
             try {
@@ -147,6 +152,17 @@ public class EmpConnector {
                 log.error("Unable to stop HTTP transport[{}]", parameters.endpoint(), e);
             }
         }
+    }
+
+    /**
+     * Set a bearer token / session id provider function that takes a boolean as input and returns a valid token.
+     * If the input is true, the provider function is supposed to re-authenticate with the Salesforce server
+     * and get a fresh session id or token.
+     *
+     * @param bearerTokenProvider a bearer token provider function.
+     */
+    public void setBearerTokenProvider(Function<Boolean, String> bearerTokenProvider) {
+        this.bearerTokenProvider = bearerTokenProvider;
     }
 
     /**
@@ -238,10 +254,12 @@ public class EmpConnector {
             return future;
         }
 
+        String bearerToken = bearerToken();
+
         LongPollingTransport httpTransport = new LongPollingTransport(parameters.longPollingOptions(), httpClient) {
             @Override
             protected void customize(Request request) {
-                request.header(AUTHORIZATION, parameters.bearerToken());
+                request.header(AUTHORIZATION, bearerToken);
             }
         };
 
@@ -272,6 +290,52 @@ public class EmpConnector {
     private void addListeners(BayeuxClient client) {
         for (MessageListenerInfo info : listenerInfos) {
             client.getChannel(info.getChannelName()).addListener(info.getMessageListener());
+        }
+    }
+
+    private String bearerToken() {
+        if (bearerTokenProvider != null) {
+            return bearerTokenProvider.apply(reauthenticate.get());
+        } else {
+            return parameters.bearerToken();
+        }
+    }
+
+    /**
+     * Listens to /meta/connect channel messages and handles 401 errors, where client needs
+     * to reauthenticate.
+     */
+    private class AuthFailureListener implements ClientSessionChannel.MessageListener {
+
+        @Override
+        public void onMessage(ClientSessionChannel channel, Message message) {
+            if (!message.isSuccessful()) {
+                if (is401Error(message)) {
+                    reauthenticate.set(true);
+                    stop();
+                    connect();
+                }
+            }
+        }
+
+        private boolean is401Error(Message message) {
+            String error = (String)message.get(Message.ERROR_FIELD);
+            String failureReason = getFailureReason(message);
+
+            return (error != null && error.startsWith("401")) ||
+                    (failureReason != null && failureReason.startsWith("401"));
+        }
+
+        private String getFailureReason(Message message) {
+            String failureReason = null;
+            Map<String, Object> ext = message.getExt();
+            if (ext != null) {
+                Map<String, Object> sfdc = (Map<String, Object>)ext.get("sfdc");
+                if (sfdc != null) {
+                    failureReason = (String)sfdc.get("failureReason");
+                }
+            }
+            return failureReason;
         }
     }
 
