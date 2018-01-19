@@ -6,15 +6,17 @@
  */
 package com.salesforce.emp.connector.example;
 
-import static com.salesforce.emp.connector.LoginHelper.login;
+import static org.cometd.bayeux.Channel.*;
 
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.salesforce.emp.connector.BayeuxParameters;
 import com.salesforce.emp.connector.EmpConnector;
+import com.salesforce.emp.connector.LoginHelper;
 import com.salesforce.emp.connector.TopicSubscription;
 
 /**
@@ -24,14 +26,28 @@ import com.salesforce.emp.connector.TopicSubscription;
  * @since 202
  */
 public class DevLoginExample {
+
     public static void main(String[] argv) throws Throwable {
         if (argv.length < 4 || argv.length > 5) {
             System.err.println("Usage: DevLoginExample url username password topic [replayFrom]");
             System.exit(1);
         }
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
-        BayeuxParameters params = login(new URL(argv[0]), argv[1], argv[2]);
+
+        BearerTokenProvider tokenProvider = new BearerTokenProvider(new URL(argv[0]), argv[1], argv[2]);
+
+        BayeuxParameters params = tokenProvider.login();
+
         EmpConnector connector = new EmpConnector(params);
+        LoggingListener loggingListener = new LoggingListener(true, true);
+
+        connector.addListener(META_HANDSHAKE, loggingListener)
+                .addListener(META_CONNECT, loggingListener)
+                .addListener(META_DISCONNECT, loggingListener)
+                .addListener(META_SUBSCRIBE, loggingListener)
+                .addListener(META_UNSUBSCRIBE, loggingListener);
+
+        connector.setBearerTokenProvider(tokenProvider);
 
         connector.start().get(5, TimeUnit.SECONDS);
 
@@ -53,5 +69,38 @@ public class DevLoginExample {
         }
 
         System.out.println(String.format("Subscribed: %s", subscription));
+    }
+
+    private static class BearerTokenProvider implements Function<Boolean, String> {
+
+        private URL loginUrl;
+        private String username;
+        private String password;
+
+        private String bearerToken;
+
+        BearerTokenProvider(URL loginUrl, String username, String password) {
+            this.loginUrl = loginUrl;
+            this.username = username;
+            this.password = password;
+        }
+
+        BayeuxParameters login() throws Exception {
+            BayeuxParameters parameters = LoginHelper.login(loginUrl, username, password);
+            bearerToken = parameters.bearerToken();
+            return parameters;
+        }
+
+        @Override
+        public String apply(Boolean reAuth) {
+            if (reAuth) {
+                try {
+                    bearerToken = LoginHelper.login(loginUrl, username, password).bearerToken();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return bearerToken;
+        }
     }
 }
