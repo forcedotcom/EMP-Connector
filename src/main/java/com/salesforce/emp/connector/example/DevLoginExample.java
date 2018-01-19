@@ -6,18 +6,19 @@
  */
 package com.salesforce.emp.connector.example;
 
-import static org.cometd.bayeux.Channel.*;
-
-import java.net.URL;
-import java.util.Map;
-import java.util.concurrent.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import com.salesforce.emp.connector.BayeuxParameters;
 import com.salesforce.emp.connector.EmpConnector;
 import com.salesforce.emp.connector.LoginHelper;
 import com.salesforce.emp.connector.TopicSubscription;
+
+import java.net.URL;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+
+import static org.cometd.bayeux.Channel.*;
 
 /**
  * An example of using the EMP connector
@@ -34,7 +35,13 @@ public class DevLoginExample {
         }
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
 
-        BearerTokenProvider tokenProvider = new BearerTokenProvider(new URL(argv[0]), argv[1], argv[2]);
+        BearerTokenProvider tokenProvider = new BearerTokenProvider(() -> {
+            try {
+                return LoginHelper.login(new URL(argv[0]), argv[1], argv[2]);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         BayeuxParameters params = tokenProvider.login();
 
@@ -69,38 +76,5 @@ public class DevLoginExample {
         }
 
         System.out.println(String.format("Subscribed: %s", subscription));
-    }
-
-    private static class BearerTokenProvider implements Function<Boolean, String> {
-
-        private URL loginUrl;
-        private String username;
-        private String password;
-
-        private String bearerToken;
-
-        BearerTokenProvider(URL loginUrl, String username, String password) {
-            this.loginUrl = loginUrl;
-            this.username = username;
-            this.password = password;
-        }
-
-        BayeuxParameters login() throws Exception {
-            BayeuxParameters parameters = LoginHelper.login(loginUrl, username, password);
-            bearerToken = parameters.bearerToken();
-            return parameters;
-        }
-
-        @Override
-        public String apply(Boolean reAuth) {
-            if (reAuth) {
-                try {
-                    bearerToken = LoginHelper.login(loginUrl, username, password).bearerToken();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return bearerToken;
-        }
     }
 }
