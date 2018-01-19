@@ -11,7 +11,6 @@ import static com.salesforce.emp.connector.LoginHelper.login;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import com.salesforce.emp.connector.BayeuxParameters;
 import com.salesforce.emp.connector.EmpConnector;
@@ -43,24 +42,9 @@ public class LoginExample {
             throw e;
         }
 
-        String initialBearerToken = params.bearerToken();
-
-        Function<Boolean, String> bearerTokenProvider = (Boolean reAuth) -> {
-            String bearerToken = initialBearerToken;
-            if (reAuth) {
-                try {
-                    bearerToken = login(argv[0], argv[1]).bearerToken();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return bearerToken;
-        };
-
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
 
         EmpConnector connector = new EmpConnector(params);
-        connector.setBearerTokenProvider(bearerTokenProvider);
 
         connector.start().get(5, TimeUnit.SECONDS);
 
