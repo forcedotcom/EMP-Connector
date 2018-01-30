@@ -8,13 +8,14 @@ package com.salesforce.emp.connector.example;
 
 import static com.salesforce.emp.connector.LoginHelper.login;
 
+import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import com.salesforce.emp.connector.BayeuxParameters;
 import com.salesforce.emp.connector.EmpConnector;
+import com.salesforce.emp.connector.LoginHelper;
 import com.salesforce.emp.connector.TopicSubscription;
 
 /**
@@ -34,33 +35,23 @@ public class LoginExample {
             replayFrom = Long.parseLong(argv[3]);
         }
 
-        BayeuxParameters params;
-        try {
-            params = login(argv[0], argv[1]);
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            System.exit(1);
-            throw e;
-        }
-
-        String initialBearerToken = params.bearerToken();
-
-        Function<Boolean, String> bearerTokenProvider = (Boolean reAuth) -> {
-            String bearerToken = initialBearerToken;
-            if (reAuth) {
-                try {
-                    bearerToken = login(argv[0], argv[1]).bearerToken();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+        BearerTokenProvider tokenProvider = new BearerTokenProvider(() -> {
+            try {
+                return login(argv[0], argv[1]);
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+                System.exit(1);
+                throw new RuntimeException(e);
             }
-            return bearerToken;
-        };
+        });
+
+        BayeuxParameters params = tokenProvider.login();
 
         Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
 
         EmpConnector connector = new EmpConnector(params);
-        connector.setBearerTokenProvider(bearerTokenProvider);
+
+        connector.setBearerTokenProvider(tokenProvider);
 
         connector.start().get(5, TimeUnit.SECONDS);
 

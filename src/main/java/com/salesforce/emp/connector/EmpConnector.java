@@ -294,11 +294,15 @@ public class EmpConnector {
     }
 
     private String bearerToken() {
+        String bearerToken;
         if (bearerTokenProvider != null) {
-            return bearerTokenProvider.apply(reauthenticate.get());
+            bearerToken = bearerTokenProvider.apply(reauthenticate.get());
+            reauthenticate.compareAndSet(true, false);
         } else {
-            return parameters.bearerToken();
+            bearerToken = parameters.bearerToken();
         }
+
+        return bearerToken;
     }
 
     /**
