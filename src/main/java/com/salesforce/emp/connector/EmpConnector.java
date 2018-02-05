@@ -129,6 +129,7 @@ public class EmpConnector {
     public Future<Boolean> start() {
         if (running.compareAndSet(false, true)) {
             addListener(Channel.META_CONNECT, new AuthFailureListener());
+            addListener(Channel.META_HANDSHAKE, new AuthFailureListener());
             return connect();
         }
         CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
