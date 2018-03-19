@@ -90,8 +90,8 @@ public class EmpConnector {
                     if (error == null) {
                         error = message.get(FAILURE);
                     }
-                    future.completeExceptionally(
-                            new CannotSubscribe(parameters.endpoint(), topic, replayFrom, error != null ? error : message));
+//                    future.completeExceptionally(
+//                            new CannotSubscribe(parameters.endpoint(), topic, replayFrom, error != null ? error : message));
                 }
             });
             return future;

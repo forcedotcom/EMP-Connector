@@ -6,11 +6,15 @@
  */
 package com.salesforce.emp.connector.example;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.salesforce.emp.connector.BayeuxParameters;
 import com.salesforce.emp.connector.EmpConnector;
 import com.salesforce.emp.connector.LoginHelper;
 import com.salesforce.emp.connector.TopicSubscription;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -33,7 +37,17 @@ public class DevLoginExample {
             System.err.println("Usage: DevLoginExample url username password topic [replayFrom]");
             System.exit(1);
         }
-        Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        Consumer<Map<String, Object>> consumer = event -> {
+            StringWriter sw = new StringWriter();
+            try {
+                mapper.writeValue(sw, event);
+                System.out.println(String.format("Received:\n%s", sw.toString()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        };
 
         BearerTokenProvider tokenProvider = new BearerTokenProvider(() -> {
             try {
