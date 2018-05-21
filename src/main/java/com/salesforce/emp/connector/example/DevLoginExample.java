@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import org.eclipse.jetty.util.ajax.JSON;
 
 import static org.cometd.bayeux.Channel.*;
 
@@ -33,7 +34,7 @@ public class DevLoginExample {
             System.err.println("Usage: DevLoginExample url username password topic [replayFrom]");
             System.exit(1);
         }
-        Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
+        Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", JSON.toString(event)));
 
         BearerTokenProvider tokenProvider = new BearerTokenProvider(() -> {
             try {
