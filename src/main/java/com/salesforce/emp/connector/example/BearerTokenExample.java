@@ -14,6 +14,7 @@ import com.salesforce.emp.connector.BayeuxParameters;
 import com.salesforce.emp.connector.EmpConnector;
 import com.salesforce.emp.connector.TopicSubscription;
 import org.cometd.bayeux.Channel;
+import org.eclipse.jetty.util.ajax.JSON;
 
 /**
  * An example of using the EMP connector using bearer tokens
@@ -49,7 +50,7 @@ public class BearerTokenExample {
             }
         };
 
-        Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
+        Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", JSON.toString(event)));
         EmpConnector connector = new EmpConnector(params);
 
         connector.addListener(Channel.META_CONNECT, new LoggingListener(true, true))
