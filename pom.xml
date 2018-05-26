@@ -29,8 +29,8 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/forcedotcom/EMP-Connector.git</connection>
-        <developerConnection>scm:git:ssh://github.com:forcedotcom/EMP-Connector.git</developerConnection>
+        <connection>scm:git:git@github.com:forcedotcom/EMP-Connector.git</connection>
+        <developerConnection>scm:git:git@github.com:forcedotcom/EMP-Connector.git</developerConnection>
         <url>https://github.com/forcedotcom/EMP-Connector/tree/master</url>
     </scm>
 
