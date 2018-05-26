@@ -63,8 +63,14 @@ public class DevLoginExample {
             replayFrom = Long.parseLong(argv[4]);
         }
         TopicSubscription subscription;
+        TopicSubscription subscription2;
         try {
             subscription = connector.subscribe(argv[3], replayFrom, consumer).get(5, TimeUnit.SECONDS);
+
+//            Thread.sleep(10000);
+
+//            subscription2 = connector.subscribe(argv[3], replayFrom, event -> System.out.println(String.format("2Received:\n%s", event))).get(5, TimeUnit.SECONDS);
+
         } catch (ExecutionException e) {
             System.err.println(e.getCause().toString());
             System.exit(1);
@@ -76,5 +82,6 @@ public class DevLoginExample {
         }
 
         System.out.println(String.format("Subscribed: %s", subscription));
+//        System.out.println(String.format("Subscribed2: %s", subscription2));
     }
 }
