@@ -57,6 +57,8 @@ public class DevLoginExample {
 
         connector.setBearerTokenProvider(tokenProvider);
 
+        connector.enableLoggingExtension();
+
         connector.start().get(5, TimeUnit.SECONDS);
 
         long replayFrom = EmpConnector.REPLAY_FROM_TIP;

@@ -116,6 +116,8 @@ public class EmpConnector {
     private Function<Boolean, String> bearerTokenProvider;
     private AtomicBoolean reauthenticate = new AtomicBoolean(false);
 
+    private LoggingExtension loggingExtension;
+
     public EmpConnector(BayeuxParameters parameters) {
         this.parameters = parameters;
         httpClient = new HttpClient(parameters.sslContextFactory());
@@ -164,6 +166,10 @@ public class EmpConnector {
      */
     public void setBearerTokenProvider(Function<Boolean, String> bearerTokenProvider) {
         this.bearerTokenProvider = bearerTokenProvider;
+    }
+
+    public void enableLoggingExtension() {
+        this.loggingExtension = new LoggingExtension();
     }
 
     /**
@@ -267,6 +273,10 @@ public class EmpConnector {
         client = new BayeuxClient(parameters.endpoint().toExternalForm(), httpTransport);
 
         client.addExtension(new ReplayExtension(replay));
+
+        if (loggingExtension != null) {
+            client.addExtension(loggingExtension);
+        }
 
         addListeners(client);
 
