@@ -141,8 +141,11 @@ public class EmpConnector {
      * Stop the connector
      */
     public void stop() {
-        if (!running.compareAndSet(true, false)) { return; }
+        if (!running.compareAndSet(true, false)) {
+            return;
+        }
         if (client != null) {
+            log.info("Disconnecting Bayeux Client in EmpConnector");
             client.disconnect();
             client = null;
         }
@@ -244,6 +247,7 @@ public class EmpConnector {
     }
 
     private Future<Boolean> connect() {
+        log.info("EmpConnector connecting");
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         replay.clear();
         try {
@@ -306,29 +310,39 @@ public class EmpConnector {
         return bearerToken;
     }
 
+    private void reconnect() {
+        if (running.compareAndSet(false, true)) {
+            connect();
+        } else {
+            log.error("The current value of running is not as we expect, this means our reconnection may not happen");
+        }
+    }
+
     /**
      * Listens to /meta/connect channel messages and handles 401 errors, where client needs
      * to reauthenticate.
      */
     private class AuthFailureListener implements ClientSessionChannel.MessageListener {
+        private static final String ERROR_401 = "401";
+        private static final String ERROR_403 = "403";
 
         @Override
         public void onMessage(ClientSessionChannel channel, Message message) {
             if (!message.isSuccessful()) {
-                if (is401Error(message)) {
+                if (isError(message, ERROR_401) || isError(message, ERROR_403)) {
                     reauthenticate.set(true);
                     stop();
-                    connect();
+                    reconnect();
                 }
             }
         }
 
-        private boolean is401Error(Message message) {
+        private boolean isError(Message message, String errorCode) {
             String error = (String)message.get(Message.ERROR_FIELD);
             String failureReason = getFailureReason(message);
 
-            return (error != null && error.startsWith("401")) ||
-                    (failureReason != null && failureReason.startsWith("401"));
+            return (error != null && error.startsWith(errorCode)) ||
+                    (failureReason != null && failureReason.startsWith(errorCode));
         }
 
         private String getFailureReason(Message message) {

@@ -16,11 +16,11 @@ public class BearerTokenProvider implements Function<Boolean, String> {
     private Supplier<BayeuxParameters> sessionSupplier;
     private String bearerToken;
 
-    BearerTokenProvider(Supplier<BayeuxParameters> sessionSupplier) {
+    public BearerTokenProvider(Supplier<BayeuxParameters> sessionSupplier) {
         this.sessionSupplier = sessionSupplier;
     }
 
-    BayeuxParameters login() throws Exception {
+    public BayeuxParameters login() throws Exception {
         BayeuxParameters parameters = sessionSupplier.get();
         bearerToken = parameters.bearerToken();
         return parameters;
