@@ -4,17 +4,6 @@ A simplified connector example to the Enterprise Messaging Platform.
 This example connector provides support for SSL, HTTP proxies and supports both the long polling and websocket
 streaming transports.  Easy subscription management and full support for event replay is provided.
 
-* * *
-
-To use, add the maven dependency:
-
-    <dependency>
-        <groupId>com.salesforce.conduit</groupId>
-        <artifactId>emp-connector</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-* * *
-
 ## Disclaimer
 Please note that this repository is example code and is not supported by Salesforce.  This code has not been rigorously tested nor performance tested for throughput and scale.
 
@@ -39,9 +28,9 @@ ___
     // Wait for handshake with Streaming API
     connector.start().get(5, TimeUnit.SECONDS);
 
-    // Subscribe to a topic
+    // Subscribe to a channel
     // Block and wait for the subscription to succeed for 5 seconds
-    TopicSubscription subscription = connector.subscribe("/topic/myTopic", replayFrom, consumer).get(5, TimeUnit.SECONDS);
+    TopicSubscription subscription = connector.subscribe("<Channel>", replayFrom, consumer).get(5, TimeUnit.SECONDS);
 
     // Here's our subscription
     System.out.println(String.format("Subscribed: %s", subscription));
@@ -74,15 +63,15 @@ The build generates the jar file in the target subfolder.
 
 To run EMP Connector using the `LoginExample` class with username and password authentication, use this command.
 
-`$ java -jar target/emp-connector-0.0.1-SNAPSHOT-phat.jar <username> <password> <topic>`
+`$ java -jar target/emp-connector-0.0.1-SNAPSHOT-phat.jar <username> <password> <channel>`
 
 To run EMP Connector using the `DevLoginExample` class with username and password authentication, use this command.
 
-`$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.DevLoginExample <login_URL> <username> <password> <topic>`
+`$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.DevLoginExample <login_URL> <username> <password> <channel>`
 
 To run EMP Connector using an OAuth access token, use this command.
 
-`$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.BearerTokenExample <instance_URL> <token> <topic>`
+`$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.BearerTokenExample <instance_URL> <token> <channel>`
 
 ## Debug Logging of Bayeux Messages
 The [LoggingListener](src/main/java/com/salesforce/emp/connector/example/LoggingListener.java) class provides debug logging output of Bayeux messages received on the meta channels, such as `/meta/handshake` and `/meta/connect`. Each message is logged to the console with a timestamp, a "Success" prefix or a "Failure" prefix depending on whether the operation was successful or not, and then the body of the Bayeux message. For example, this log is for a handshake message.
