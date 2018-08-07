@@ -8,6 +8,7 @@ import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.net.URL;
 import java.util.UUID;
@@ -17,16 +18,16 @@ public class EventsGenerator {
     private static String SOBJECT_URI = "services/data/v42.0/sobjects/";
     private static String[] EVENTS_URI = new String[] {
             SOBJECT_URI+"dbTest__e",
-            SOBJECT_URI+"dbTest1__e",
-            SOBJECT_URI+"dbTest2__e"
+//            SOBJECT_URI+"dbTest1__e",
+//            SOBJECT_URI+"dbTest2__e"
     };
 
     private static String PAYLOAD_TEMPLATE =
-            "{\"status__c\" : \" %s \", \"status2__c\": \" %s \"}";
+            "{\"status__c\" : \" %s \"}";
 
     public static void main(String[] argv) throws Throwable {
         if (argv.length < 4 || argv.length > 5) {
-            System.err.println("Usage: EventGenerator url username password delayInSecs");
+            System.err.println("Usage: EventGenerator url username password delayInSecs howManyToCreate");
             System.exit(1);
         }
 
@@ -34,6 +35,7 @@ public class EventsGenerator {
         String username = argv[1];
         String password = argv[2];
         Long delaySecs = Long.parseLong(argv[3]);
+        Long count = Long.parseLong(argv[4]);
 
         BearerTokenProvider tokenProvider = new BearerTokenProvider(() -> {
             try {
@@ -45,10 +47,11 @@ public class EventsGenerator {
 
         BayeuxParameters params = tokenProvider.login();
 
-        HttpClient client = new HttpClient();
+        HttpClient client = new HttpClient(new SslContextFactory(true));
+        client.setFollowRedirects(true);
         client.start();
         try {
-            while (true) {
+            for (int i = 0; i < count; i += 1) {
                 for (String eventURI : EVENTS_URI) {
                     Request request = client.POST(serverUrl + eventURI)
                             .header(HttpHeader.AUTHORIZATION, "OAuth " + params.bearerToken())

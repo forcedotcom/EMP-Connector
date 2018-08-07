@@ -91,7 +91,7 @@ public interface BayeuxParameters {
      * @return the SslContextFactory for establishing secure outbound connections
      */
     default SslContextFactory sslContextFactory() {
-        return new SslContextFactory();
+        return new SslContextFactory(true);
     }
 
     /**
