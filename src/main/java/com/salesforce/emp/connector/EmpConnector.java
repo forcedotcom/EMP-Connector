@@ -130,6 +130,7 @@ public class EmpConnector {
         if (running.compareAndSet(false, true)) {
             addListener(Channel.META_CONNECT, new AuthFailureListener());
             addListener(Channel.META_HANDSHAKE, new AuthFailureListener());
+            replay.clear();
             return connect();
         }
         CompletableFuture<Boolean> future = new CompletableFuture<Boolean>();
@@ -249,7 +250,7 @@ public class EmpConnector {
     private Future<Boolean> connect() {
         log.info("EmpConnector connecting");
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        replay.clear();
+
         try {
             httpClient.start();
         } catch (Exception e) {
