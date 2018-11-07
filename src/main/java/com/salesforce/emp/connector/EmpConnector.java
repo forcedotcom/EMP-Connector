@@ -7,6 +7,8 @@
 package com.salesforce.emp.connector;
 
 import java.net.ConnectException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -188,7 +190,8 @@ public class EmpConnector {
                     parameters.endpoint()));
         }
 
-        if (replay.putIfAbsent(topic, replayFrom) != null) {
+        final String topicWithoutQueryString = topic.split("\\?")[0];
+        if (replay.putIfAbsent(topicWithoutQueryString, replayFrom) != null) {
             throw new IllegalStateException(String.format("Already subscribed to %s [%s]",
                     topic, parameters.endpoint()));
         }
