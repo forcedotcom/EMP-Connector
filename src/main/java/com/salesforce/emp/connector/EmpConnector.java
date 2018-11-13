@@ -50,7 +50,7 @@ public class EmpConnector {
          */
         @Override
         public void cancel() {
-            replay.remove(topic);
+            replay.remove(getTopicWithoutQueryString(topic));
             if (running.get() && client != null) {
                 client.getChannel(topic).unsubscribe();
                 subscriptions.remove(this);
@@ -117,6 +117,10 @@ public class EmpConnector {
 
     private Function<Boolean, String> bearerTokenProvider;
     private AtomicBoolean reauthenticate = new AtomicBoolean(false);
+
+    private static String getTopicWithoutQueryString(String topic) {
+        return topic.split("\\?")[0];
+    }
 
     public EmpConnector(BayeuxParameters parameters) {
         this.parameters = parameters;
@@ -190,7 +194,7 @@ public class EmpConnector {
                     parameters.endpoint()));
         }
 
-        final String topicWithoutQueryString = topic.split("\\?")[0];
+        final String topicWithoutQueryString = getTopicWithoutQueryString(topic);
         if (replay.putIfAbsent(topicWithoutQueryString, replayFrom) != null) {
             throw new IllegalStateException(String.format("Already subscribed to %s [%s]",
                     topic, parameters.endpoint()));
