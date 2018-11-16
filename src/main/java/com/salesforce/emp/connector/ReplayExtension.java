@@ -40,7 +40,8 @@ public class ReplayExtension extends Adapter {
         Long replayId = getReplayId(message);
         if (this.supported.get() && replayId != null) {
             try {
-                dataMap.put(message.getChannel(), replayId);
+                String channel = topicWithoutQueryString(message.getChannel());
+                dataMap.put(channel, replayId);
             } catch (ClassCastException e) {
                 return false;
             }
@@ -88,5 +89,9 @@ public class ReplayExtension extends Adapter {
         catch (NullPointerException e) {
             return Optional.empty();
         }
+    }
+
+    private static String topicWithoutQueryString(String fullTopic) {
+        return fullTopic.split("\\?")[0];
     }
 }
