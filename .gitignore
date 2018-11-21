@@ -8,3 +8,15 @@
 **/.settings
 **/.classpath
 **/.DS_Store
+*.class
+# Eclipse files
+.classpath
+.project
+.settings/
+target/
+build
+*/src/main/resources/build.properties
+*/*/src/main/resources/build.properties
+# Intellij files
+.idea/
+*.iml

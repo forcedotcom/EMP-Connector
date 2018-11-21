@@ -7,6 +7,7 @@ package com.salesforce.emp.connector;
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
@@ -165,5 +166,41 @@ public class LoginHelper {
     private static byte[] soapXmlForLogin(String username, String password) throws UnsupportedEncodingException {
         return (ENV_START + "  <urn:login>" + "    <urn:username>" + username + "</urn:username>" + "    <urn:password>"
                 + password + "</urn:password>" + "  </urn:login>" + ENV_END).getBytes("UTF-8");
+    }
+    public static BayeuxParameters loginSession(final String sessionId, final String url) throws MalformedURLException {
+        return loginSession(sessionId, url, getDefaultBayeuxParameters());
+    }
+
+    public static BayeuxParameters loginSession(final String sessionId, final String url, final
+    BayeuxParameters parameters) throws MalformedURLException {
+        URL soapEndpoint = new URL(url);
+        String cometdEndpoint = Float.parseFloat(parameters.version()) < 37 ? COMETD_REPLAY_OLD : COMETD_REPLAY;
+        URL replayEndpoint = new URL(soapEndpoint.getProtocol(), soapEndpoint.getHost(), soapEndpoint.getPort(),
+                new StringBuilder().append(cometdEndpoint).append(parameters.version()).toString());
+        return new DelegatingBayeuxParameters(parameters) {
+            @Override
+            public String bearerToken() {
+                return sessionId;
+            }
+
+            @Override
+            public URL endpoint() {
+                return replayEndpoint;
+            }
+        };
+    }
+
+    public static BayeuxParameters getDefaultBayeuxParameters() {
+        return new BayeuxParameters() {
+            @Override
+            public String bearerToken() {
+                throw new IllegalStateException("Have not authenticated");
+            }
+
+            @Override
+            public URL endpoint() {
+                throw new IllegalStateException("Have not established replay endpoint");
+            }
+        };
     }
 }

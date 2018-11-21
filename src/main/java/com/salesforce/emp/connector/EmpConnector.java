@@ -1,7 +1,7 @@
-/* 
+/*
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
- * Licensed under the BSD 3-Clause license. 
+ * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.TXT file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 package com.salesforce.emp.connector;
@@ -118,6 +118,27 @@ public class EmpConnector {
     private Function<Boolean, String> bearerTokenProvider;
     private AtomicBoolean reauthenticate = new AtomicBoolean(false);
 
+    private int maxRetry;
+    private int currentRetry;
+    private int retryInterval;
+    private Exception exception;
+
+    public Exception getException() {
+        return exception;
+    }
+
+    public void setException(final Exception exception) {
+        this.exception = exception;
+    }
+
+    public EmpConnector(BayeuxParameters parameters, int maxRetry, int retryInterval) {
+        this.parameters = parameters;
+        httpClient = new HttpClient(parameters.sslContextFactory());
+        httpClient.getProxyConfiguration().getProxies().addAll(parameters.proxies());
+        this.maxRetry = maxRetry;
+        this.currentRetry = maxRetry;
+        this.retryInterval = retryInterval;
+    }
     public EmpConnector(BayeuxParameters parameters) {
         this.parameters = parameters;
         httpClient = new HttpClient(parameters.sslContextFactory());
@@ -130,8 +151,8 @@ public class EmpConnector {
      */
     public Future<Boolean> start() {
         if (running.compareAndSet(false, true)) {
-            addListener(Channel.META_CONNECT, new AuthFailureListener());
-            addListener(Channel.META_HANDSHAKE, new AuthFailureListener());
+            addListener(Channel.META_CONNECT, new RetryAuthFailureListener());
+            addListener(Channel.META_HANDSHAKE, new RetryAuthFailureListener());
             replay.clear();
             return connect();
         }
@@ -377,6 +398,75 @@ public class EmpConnector {
 
         ClientSessionChannel.MessageListener getMessageListener() {
             return messageListener;
+        }
+    }
+
+
+    /**
+     * Listens to /meta/connect channel messages and handles 401 errors, where client needs
+     * to reauthenticate and adds retry and save the exception for reference.
+     */
+    private class RetryAuthFailureListener implements ClientSessionChannel.MessageListener {
+        private static final String ERROR_401 = "401";
+        private static final String ERROR_403 = "403";
+
+        @Override
+        public void onMessage(ClientSessionChannel channel, Message message) {
+            if (!message.isSuccessful()) {
+                saveException(message);
+                if (currentRetry > 0) {
+                    try {
+                        Thread.sleep(retryInterval);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        //NO-OP
+                    }
+                    currentRetry--;
+                    //Only re-authenticate if there is an authentication failure else just wait
+                    // for the specified interval and disconnect if elapsed
+                    if (isError(message, ERROR_401) || isError(message, ERROR_403)) {
+                        reauthenticate.set(true);
+                        stop();
+                        reconnect();
+                    }
+                } else {
+                    stop();
+                }
+            } else {
+                currentRetry = maxRetry;
+            }
+        }
+
+        private boolean isError(Message message, String errorCode) {
+            String error = (String) message.get(Message.ERROR_FIELD);
+            String failureReason = getFailureReason(message);
+
+            return (error != null && error.startsWith(errorCode)) ||
+                    (failureReason != null && failureReason.startsWith(errorCode));
+        }
+
+        private void saveException(Message message) {
+            if (!message.isSuccessful()) {
+                Object failure = message.get("failure");
+                if (failure instanceof Map) {
+                    Object currentException = ((Map) failure).get("exception");
+                    if (currentException instanceof Exception) {
+                        setException((Exception) currentException);
+                    }
+                }
+            }
+        }
+
+        private String getFailureReason(Message message) {
+            String failureReason = null;
+            Map<String, Object> ext = message.getExt();
+            if (ext != null) {
+                Map<String, Object> sfdc = (Map<String, Object>) ext.get("sfdc");
+                if (sfdc != null) {
+                    failureReason = (String) sfdc.get("failureReason");
+                }
+            }
+            return failureReason;
         }
     }
 }
