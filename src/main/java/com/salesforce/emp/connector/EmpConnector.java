@@ -50,7 +50,7 @@ public class EmpConnector {
          */
         @Override
         public void cancel() {
-            replay.remove(topic);
+            replay.remove(topicWithoutQueryString(topic));
             if (running.get() && client != null) {
                 client.getChannel(topic).unsubscribe();
                 subscriptions.remove(this);
@@ -190,7 +190,7 @@ public class EmpConnector {
                     parameters.endpoint()));
         }
 
-        final String topicWithoutQueryString = topic.split("\\?")[0];
+        final String topicWithoutQueryString = topicWithoutQueryString(topic);
         if (replay.putIfAbsent(topicWithoutQueryString, replayFrom) != null) {
             throw new IllegalStateException(String.format("Already subscribed to %s [%s]",
                     topic, parameters.endpoint()));
@@ -248,6 +248,10 @@ public class EmpConnector {
 
     public long getLastReplayId(String topic) {
         return replay.get(topic);
+    }
+
+    private static String topicWithoutQueryString(String fullTopic) {
+        return fullTopic.split("\\?")[0];
     }
 
     private Future<Boolean> connect() {
