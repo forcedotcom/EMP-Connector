@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jetty.client.api.Authentication;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 /**
@@ -99,5 +100,12 @@ public interface BayeuxParameters {
      */
     default String version() {
         return "43.0";
+    }
+
+    /**
+     * @return a Proxy Authentication used for outbound connections
+     */
+    default Authentication proxyAuth() {
+        return null;
     }
 }

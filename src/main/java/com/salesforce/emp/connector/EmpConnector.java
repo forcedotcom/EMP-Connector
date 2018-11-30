@@ -135,14 +135,21 @@ public class EmpConnector {
         this.parameters = parameters;
         httpClient = new HttpClient(parameters.sslContextFactory());
         httpClient.getProxyConfiguration().getProxies().addAll(parameters.proxies());
+        if (parameters.proxyAuth() != null){
+            httpClient.getAuthenticationStore().addAuthentication(parameters.proxyAuth());
+        }
         this.maxRetry = maxRetry;
         this.currentRetry = maxRetry;
         this.retryInterval = retryInterval;
     }
+
     public EmpConnector(BayeuxParameters parameters) {
         this.parameters = parameters;
         httpClient = new HttpClient(parameters.sslContextFactory());
         httpClient.getProxyConfiguration().getProxies().addAll(parameters.proxies());
+        if (parameters.proxyAuth() != null){
+            httpClient.getAuthenticationStore().addAuthentication(parameters.proxyAuth());
+        }
     }
 
     /**

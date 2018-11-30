@@ -116,6 +116,9 @@ public class LoginHelper {
         HttpClient client = new HttpClient(parameters.sslContextFactory());
         try {
             client.getProxyConfiguration().getProxies().addAll(parameters.proxies());
+            if (parameters.proxyAuth() != null) {
+                client.getAuthenticationStore().addAuthentication(parameters.proxyAuth());
+            }
             client.start();
             URL endpoint = new URL(loginEndpoint, getSoapUri());
             Request post = client.POST(endpoint.toURI());
