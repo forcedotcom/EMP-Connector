@@ -23,8 +23,6 @@ import org.cometd.client.BayeuxClient;
 import org.cometd.client.transport.LongPollingTransport;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author hal.hildebrand
@@ -104,7 +102,7 @@ public class EmpConnector {
     public static long REPLAY_FROM_TIP = -1L;
 
     private static String AUTHORIZATION = "Authorization";
-    private static final Logger log = LoggerFactory.getLogger(EmpConnector.class);
+//    private static final Logger log = LoggerFactory.getLogger(EmpConnector.class);
 
     private volatile BayeuxClient client;
     private final HttpClient httpClient;
@@ -176,7 +174,7 @@ public class EmpConnector {
             return;
         }
         if (client != null) {
-            log.info("Disconnecting Bayeux Client in EmpConnector");
+            System.out.println("Disconnecting Bayeux Client in EmpConnector");
             client.disconnect();
             client = null;
         }
@@ -184,7 +182,8 @@ public class EmpConnector {
             try {
                 httpClient.stop();
             } catch (Exception e) {
-                log.error("Unable to stop HTTP transport[{}]", parameters.endpoint(), e);
+                System.err.println(String.format("Unable to stop HTTP transport %s %s" ,parameters
+                        .endpoint().toString(), e.toString()));
             }
         }
     }
@@ -279,13 +278,14 @@ public class EmpConnector {
     }
 
     private Future<Boolean> connect() {
-        log.info("EmpConnector connecting");
+        System.out.println("EmpConnector connecting");
         CompletableFuture<Boolean> future = new CompletableFuture<>();
 
         try {
             httpClient.start();
         } catch (Exception e) {
-            log.error("Unable to start HTTP transport[{}]", parameters.endpoint(), e);
+            System.err.println(String.format("Unable to Start HTTP transport %s %s" ,parameters
+                    .endpoint().toString(), e.toString()));
             running.set(false);
             future.complete(false);
             return future;
@@ -346,7 +346,8 @@ public class EmpConnector {
         if (running.compareAndSet(false, true)) {
             connect();
         } else {
-            log.error("The current value of running is not as we expect, this means our reconnection may not happen");
+            System.err.println("The current value of running is not as we expect, this means our reconnection " +
+                    "may not happen");
         }
     }
 

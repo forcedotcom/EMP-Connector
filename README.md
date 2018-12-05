@@ -4,11 +4,15 @@ A simplified connector example to the Enterprise Messaging Platform.
 This example connector provides support for SSL, HTTP proxies and supports both the long polling and websocket
 streaming transports.  Easy subscription management and full support for event replay is provided.
 
-## Disclaimer
-Please note that this repository is example code and is not supported by Salesforce.  This code has not been rigorously tested nor performance tested for throughput and scale.
+## Build
 
-This code is provided as an example only.  The underlying [CometD library](https://cometd.org/) is what provides the meat here, as EMP Connector is a thin wrapper around this library.
-___
+Use `mvn clean compile assembly:single` to build the `jar-with-dependencies` to be used in the 
+Snaplogic maven repo.
+
+## Note 
+
+The `slf4j` logger is excluded for the pom dependency and replace with `System.out.println` in 
+the code to resolve the `linkage error` that we see when running the salesforce snap.
 
 ## Example Usage
 
@@ -107,3 +111,9 @@ For a full example, see [LoginExample.java](src/main/java/com/salesforce/emp/con
 ## Documentation
 For more information about the components of the EMP Connector and a walkthrough, see the [Java Client Example](https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/code_sample_java_client_intro.htm)
  in the *Streaming API Developer Guide*.
+
+## Disclaimer
+Please note that this repository is example code and is not supported by Salesforce.  This code has not been rigorously tested nor performance tested for throughput and scale.
+
+This code is provided as an example only.  The underlying [CometD library](https://cometd.org/) is what provides the meat here, as EMP Connector is a thin wrapper around this library.
+___
