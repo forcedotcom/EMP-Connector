@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.salesforce.conduit</groupId>
     <artifactId>emp-connector</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1-sl</version>
     <name>EMP Connector</name>
     <description>A simplified connector for EMP</description>
     <url>https://github.com/forcedotcom/EMP-Connector</url>
