@@ -20,7 +20,7 @@ import org.eclipse.jetty.util.ajax.JSON;
  * An example of using the EMP connector using bearer tokens
  *
  * @author hal.hildebrand
- * @since 202
+ * @since API v37.0
  */
 public class BearerTokenExample {
     public static void main(String[] argv) throws Exception {

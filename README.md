@@ -63,15 +63,24 @@ The build generates the jar file in the target subfolder.
 
 To run EMP Connector using the `LoginExample` class with username and password authentication, use this command.
 
-`$ java -jar target/emp-connector-0.0.1-SNAPSHOT-phat.jar <username> <password> <channel>`
+`$ java -jar target/emp-connector-0.0.1-SNAPSHOT-phat.jar <username> <password> <channel> [optional_replay_id]`
 
 To run EMP Connector using the `DevLoginExample` class with username and password authentication, use this command.
 
-`$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.DevLoginExample <login_URL> <username> <password> <channel>`
+`$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.DevLoginExample <login_URL> <username> <password> <channel> [optional_replay_id]`
 
 To run EMP Connector using an OAuth access token, use this command.
 
-`$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.BearerTokenExample <instance_URL> <token> <channel>`
+`$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.BearerTokenExample <instance_URL> <token> <channel> [optional_replay_id]`
+
+The last parameter is the replay ID, which is the position in the stream from which you want to receive event messages. This parameter is optional. If not specified, EMP Connector fetches events starting from the earliest retained event message (-2 option). For more information, see [Message Durability](https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/using_streaming_api_durability.htm).
+
+## Subscription Filtering for PushTopic Channels
+If you subscribe to a PushTopic channel with a filter, enclose the entire channel and filter information within quotes on the command line. Do not use single quotes around field values. Otherwise, EMP Connector doesn't work properly. For example, this command line uses filters on the TestAccount PushTopic.
+
+`$ java -jar target/emp-connector-0.0.1-SNAPSHOT-phat.jar <username> <password> "/topic/TestAccount?Type=Technology Partner&Phone=(415) 555-1212"`
+
+Only Pushtopic events support filtering. For more information, see [Filtered Subscriptions](https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/using_filtered_subscriptions.htm).
 
 ## Debug Logging of Bayeux Messages
 The [LoggingListener](src/main/java/com/salesforce/emp/connector/example/LoggingListener.java) class provides debug logging output of Bayeux messages received on the meta channels, such as `/meta/handshake` and `/meta/connect`. Each message is logged to the console with a timestamp, a "Success" prefix or a "Failure" prefix depending on whether the operation was successful or not, and then the body of the Bayeux message. For example, this log is for a handshake message.
