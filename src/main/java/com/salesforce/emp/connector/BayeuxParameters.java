@@ -13,7 +13,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 /**
  * @author hal.hildebrand
- * @since 202
+ * @since API v37.0
  */
 public interface BayeuxParameters {
 

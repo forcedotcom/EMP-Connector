@@ -1,7 +1,7 @@
-/* 
+/*
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
- * Licensed under the BSD 3-Clause license. 
+ * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.TXT file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 package com.salesforce.emp.connector.example;
@@ -25,7 +25,7 @@ import static org.cometd.bayeux.Channel.*;
  * An example of using the EMP connector
  *
  * @author hal.hildebrand
- * @since 202
+ * @since API v37.0
  */
 public class DevLoginExample {
 
@@ -59,7 +59,7 @@ public class DevLoginExample {
 
         connector.start().get(5, TimeUnit.SECONDS);
 
-        long replayFrom = EmpConnector.REPLAY_FROM_TIP;
+        long replayFrom = EmpConnector.REPLAY_FROM_EARLIEST;
         if (argv.length == 5) {
             replayFrom = Long.parseLong(argv[4]);
         }
@@ -70,7 +70,7 @@ public class DevLoginExample {
             System.err.println(e.getCause().toString());
             System.exit(1);
             throw e.getCause();
-        } catch (TimeoutException e) { 
+        } catch (TimeoutException e) {
             System.err.println("Timed out subscribing");
             System.exit(1);
             throw e.getCause();
