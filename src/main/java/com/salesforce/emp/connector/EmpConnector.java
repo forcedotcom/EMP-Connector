@@ -63,7 +63,7 @@ public class EmpConnector {
          */
         @Override
         public long getReplayFrom() {
-            return replay.getOrDefault(topic, REPLAY_FROM_EARLIEST);
+            return replay.getOrDefault(topicWithoutQueryString(topic), REPLAY_FROM_EARLIEST);
         }
 
         /*
