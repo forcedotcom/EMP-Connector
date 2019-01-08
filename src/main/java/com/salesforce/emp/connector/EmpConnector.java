@@ -190,6 +190,10 @@ public class EmpConnector {
                     parameters.endpoint()));
         }
 
+        if(topic.substring(topic.length() - 1).equals("/")) {
+            topic = topic.replaceAll(".$", "");
+        }
+
         final String topicWithoutQueryString = topicWithoutQueryString(topic);
         if (replay.putIfAbsent(topicWithoutQueryString, replayFrom) != null) {
             throw new IllegalStateException(String.format("Already subscribed to %s [%s]",
