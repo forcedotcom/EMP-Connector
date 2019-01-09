@@ -189,10 +189,7 @@ public class EmpConnector {
             throw new IllegalStateException(String.format("Connector[%s} has not been started",
                     parameters.endpoint()));
         }
-
-        if(topic.substring(topic.length() - 1).equals("/")) {
-            topic = topic.replaceAll(".$", "");
-        }
+        topic = topic.replaceAll("/$", "");
 
         final String topicWithoutQueryString = topicWithoutQueryString(topic);
         if (replay.putIfAbsent(topicWithoutQueryString, replayFrom) != null) {
