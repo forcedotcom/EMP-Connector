@@ -7,6 +7,8 @@
 package com.salesforce.emp.connector;
 
 import java.net.ConnectException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +24,10 @@ import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.client.BayeuxClient;
 import org.cometd.client.transport.LongPollingTransport;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.Authentication;
+import org.eclipse.jetty.client.api.AuthenticationStore;
 import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.client.util.BasicAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,10 +123,17 @@ public class EmpConnector {
     private Function<Boolean, String> bearerTokenProvider;
     private AtomicBoolean reauthenticate = new AtomicBoolean(false);
 
-    public EmpConnector(BayeuxParameters parameters) {
+    public EmpConnector(BayeuxParameters parameters) throws URISyntaxException {
         this.parameters = parameters;
         httpClient = new HttpClient(parameters.sslContextFactory());
         httpClient.getProxyConfiguration().getProxies().addAll(parameters.proxies());
+        System.out.println("proxyes : " + parameters.proxies());
+        AuthenticationStore authenticationStore = httpClient.getAuthenticationStore();
+        for ( Authentication auth : parameters.authentications() ) {
+        	System.out.println("auth : " + auth);
+        	authenticationStore.addAuthentication(auth);
+        }
+
     }
 
     /**

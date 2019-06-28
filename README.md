@@ -111,7 +111,38 @@ Authentication becomes invalid when a Salesforce session is invalidated or an ac
     // Set the bearer token function
     connector.setBearerTokenProvider(bearerTokenProvider);
 
-For a full example, see [LoginExample.java](src/main/java/com/salesforce/emp/connector/example/LoginExample.java).
+## Proxy
+To connect to Salesforce through a proxy, you can use the ProxyBayeuxParameters class, adding it the proxy configuration, and eventually, also the authentication
+
+		BayeuxParameters params = LoginHelper.login(new URL(loginUrl), argv[0], argv[1]);
+		
+
+		Consumer<Map<String, Object>> consumer = event -> System.out
+				.println(String.format("Received:\n%s", JSON.toString(event)));
+
+		CustomBayeuxParameter dbp = new CustomBayeuxParameter(params);
+		Address a = new Address(proxyHost, proxyPort);
+		HttpProxy p = new HttpProxy(a, proxyProtocol.equals("https"));
+		dbp.addProxy(p);
+		if (!proxyUsername.isEmpty()) {
+			BasicAuthentication auth = new BasicAuthentication(
+					new URI(String.format("%s://%s:%s", proxyProtocol, proxyHost, proxyPort)), "*", proxyUsername,
+					proxyPassword) {
+				@Override
+				public boolean matches(String type, URI uri, String realm) {
+					realm = "*";
+					return super.matches(type, uri, realm);
+				}
+
+			};
+			dbp.addAuthentication(auth);
+		}
+
+		EmpConnector connector = new EmpConnector(dbp);
+
+		connector.start().get(5, TimeUnit.SECONDS);
+
+For a full example, see [LoginProxyExample.java](src/main/java/com/salesforce/emp/connector/example/LoginProxyExample.java).
 
 ## Documentation
 For more information about the components of the EMP Connector and a walkthrough, see the [Java Client Example](https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/code_sample_java_client_intro.htm)
