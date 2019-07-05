@@ -1,30 +1,52 @@
-/*
- * Copyright (c) 2016, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.TXT file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
- */
 package com.salesforce.emp.connector;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jetty.client.ProxyConfiguration.Proxy;
+import org.eclipse.jetty.client.api.Authentication;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-/**
- * @author hal.hildebrand
- * @since API v37.0
- */
-public class DelegatingBayeuxParameters implements BayeuxParameters {
-    private final BayeuxParameters parameters;
+import com.salesforce.emp.connector.BayeuxParameters;
 
-    public DelegatingBayeuxParameters(BayeuxParameters parameters) {
+public class ProxyBayeuxParameter implements BayeuxParameters{
+	private final BayeuxParameters parameters;
+    
+    private List<Proxy> proxies = new ArrayList<>();
+    private List<Authentication> auths = new ArrayList<>();
+    
+    public void addProxy( Proxy proxy ){
+    	proxies.add(proxy);
+    }
+    
+    public void addAuthentication( Authentication auth ){
+    	auths.add(auth);	    	
+    }
+    
+    public ProxyBayeuxParameter() {
+        this(new BayeuxParameters() {
+			
+			@Override
+			public String bearerToken() {
+                throw new IllegalStateException("Have not authenticated");
+            }
+
+            @Override
+            public URL endpoint() {
+                throw new IllegalStateException("Have not established replay endpoint");
+            }
+		});
+    }
+    
+    public ProxyBayeuxParameter(BayeuxParameters parameters) {
         this.parameters = parameters;
     }
 
+    
     @Override
     public String bearerToken() {
         return parameters.bearerToken();
@@ -61,11 +83,18 @@ public class DelegatingBayeuxParameters implements BayeuxParameters {
     }
 
     @Override
-    public Collection<Proxy> proxies() {
-        return parameters.proxies();
+    public List<Proxy> proxies() {
+        return proxies;
     }
 
+    
     @Override
+	public Collection<Authentication> authentications() {
+		
+		return auths;
+	}
+
+	@Override
     public SslContextFactory sslContextFactory() {
         return parameters.sslContextFactory();
     }

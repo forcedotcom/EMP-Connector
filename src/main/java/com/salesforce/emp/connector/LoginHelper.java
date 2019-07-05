@@ -14,9 +14,13 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.Authentication;
+import org.eclipse.jetty.client.api.AuthenticationStore;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.ByteBufferContentProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -27,6 +31,8 @@ import org.xml.sax.helpers.DefaultHandler;
  * @since API v37.0
  */
 public class LoginHelper {
+	private static final Logger logger = LoggerFactory.getLogger(LoginHelper.class);
+
 
     private static class LoginResponseParser extends DefaultHandler {
 
@@ -115,6 +121,12 @@ public class LoginHelper {
         HttpClient client = new HttpClient(parameters.sslContextFactory());
         try {
             client.getProxyConfiguration().getProxies().addAll(parameters.proxies());
+            logger.info("proxyes : {}", parameters.proxies());
+    		AuthenticationStore authenticationStore = client.getAuthenticationStore();
+    		for (Authentication auth : parameters.authentications()) {
+    			logger.info("proxy auth: {}", parameters.proxies());
+    			authenticationStore.addAuthentication(auth);
+    		}
             client.start();
             URL endpoint = new URL(loginEndpoint, getSoapUri());
             Request post = client.POST(endpoint.toURI());

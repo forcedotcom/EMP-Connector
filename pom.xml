@@ -26,6 +26,12 @@
             <organization>Salesforce.com, Inc.</organization>
             <organizationUrl>http://www.salesforce.com</organizationUrl>
         </developer>
+        <developer>
+            <name>Alessandro Casolla</name>
+            <email>casolla.alessandro@gmail.com</email>
+            <organization>Softphone srl</organization>
+            <organizationUrl>http://www.softphone.it</organizationUrl>
+        </developer>
     </developers>
 
     <scm>
@@ -68,18 +74,25 @@
         <dependency>
             <groupId>org.cometd.java</groupId>
             <artifactId>cometd-java-client</artifactId>
-            <version>3.1.4</version>
+            <version>4.0.4</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.1.6</version>
-            <scope>test</scope>
+             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.21</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

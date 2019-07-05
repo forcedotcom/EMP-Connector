@@ -83,7 +83,14 @@ public interface BayeuxParameters {
     /**
      * @return a list of proxies to use for outbound connections
      */
-    default Collection<? extends org.eclipse.jetty.client.ProxyConfiguration.Proxy> proxies() {
+    default Collection<org.eclipse.jetty.client.ProxyConfiguration.Proxy> proxies() {
+        return Collections.emptyList();
+    }
+    
+    /**
+     * @return a list of authentications to use for proxies
+     */
+    default Collection<org.eclipse.jetty.client.api.Authentication> authentications() {
         return Collections.emptyList();
     }
 
