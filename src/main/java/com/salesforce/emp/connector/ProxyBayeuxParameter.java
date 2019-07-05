@@ -27,7 +27,20 @@ public class ProxyBayeuxParameter implements BayeuxParameters{
     	auths.add(auth);	    	
     }
     
-   
+    public ProxyBayeuxParameter() {
+        this(new BayeuxParameters() {
+			
+			@Override
+			public String bearerToken() {
+                throw new IllegalStateException("Have not authenticated");
+            }
+
+            @Override
+            public URL endpoint() {
+                throw new IllegalStateException("Have not established replay endpoint");
+            }
+		});
+    }
     
     public ProxyBayeuxParameter(BayeuxParameters parameters) {
         this.parameters = parameters;

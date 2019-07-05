@@ -58,13 +58,12 @@ public class LoginProxyExample {
 				"username : %s, password : %s, topic : %s, loginUrl : %s, proxyProtocol : %s, proxyHost : %s,proxyUsername : %s,proxyPassword : %s ",
 				argv[0], argv[1], argv[2],loginUrl, proxyProtocol, proxyHost, proxyUsername, proxyPassword));
 
-		BayeuxParameters params = LoginHelper.login(new URL(loginUrl), argv[0], argv[1]);
 		
 
 		Consumer<Map<String, Object>> consumer = event -> System.out
 				.println(String.format("Received:\n%s", JSON.toString(event)));
 
-		ProxyBayeuxParameter dbp = new ProxyBayeuxParameter(params);
+		ProxyBayeuxParameter dbp = new ProxyBayeuxParameter();
 		Address a = new Address(proxyHost, proxyPort);
 		HttpProxy p = new HttpProxy(a, proxyProtocol.equals("https"));
 		dbp.addProxy(p);
@@ -81,8 +80,11 @@ public class LoginProxyExample {
 			};
 			dbp.addAuthentication(auth);
 		}
+		
+		BayeuxParameters params = LoginHelper.login(new URL(loginUrl), argv[0], argv[1],dbp);
+		
 
-		EmpConnector connector = new EmpConnector(dbp);
+		EmpConnector connector = new EmpConnector(params);
 
 		connector.start().get(5, TimeUnit.SECONDS);
 
