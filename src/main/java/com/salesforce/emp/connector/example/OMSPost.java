@@ -41,8 +41,8 @@ public class OMSPost {
 			con.setDoOutput(true);
 			con.setRequestMethod("POST");
 			con.setRequestProperty("Content-Type", "application/json");
-			con.setRequestProperty("Log-Type",log_type);
-			con.setRequestProperty("x-ms-date", timeNow);
+			con.setRequestProperty("Log-Type", log_type);
+			con.setRequestProperty("x-ms-date", nowStr);
 			con.setRequestProperty("Authorization", Signature);
 	        
 			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
