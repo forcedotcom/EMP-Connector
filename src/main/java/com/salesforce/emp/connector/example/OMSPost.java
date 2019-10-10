@@ -20,13 +20,13 @@ public class OMSPost {
 		String log_type = args[2];
 		
 		// Input to OMS Log Analytics
-		String json = args[3]);
+		String json = args[3];
 
 		// Log channel origin ID
-		String clientSessionChannel_Id = args[4]);
+		String clientSessionChannel_Id = args[4];
 
 		// Log flag: either success or Failure
-		String flag = args[5]);				
+		String flag = args[5];				
 		
 		String Signature = "";
 		String encodedHash = "";
