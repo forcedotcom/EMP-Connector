@@ -82,7 +82,12 @@
             <version>4.10</version>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+        <dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.10</version>
+        </dependency>
+		</dependencies>
 
     <build>
         <plugins>
