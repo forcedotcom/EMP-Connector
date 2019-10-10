@@ -6,23 +6,23 @@ import org.cometd.bayeux.client.ClientSessionChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class LoggingListener implements ClientSessionChannel.MessageListener {
+public class OMSLoggingListener implements ClientSessionChannel.MessageListener {
 
     private boolean logSuccess;
     private boolean logFailure;
 
-    public LoggingListener() {
+    public OMSLoggingListener() {
         this.logSuccess = true;
         this.logFailure = true;
     }
 
-    public LoggingListener(boolean logSuccess, boolean logFailure) {
+    public OMSLoggingListener(boolean logSuccess, boolean logFailure, String customer_id, String shared_key, String log_type) {
         this.logSuccess = logSuccess;
         this.logFailure = logFailure;
     }
 
     @Override
-    public void onMessage(ClientSessionChannel clientSessionChannel, Message message, String customer_id, String shared_key, String log_type) {
+    public void onMessage(ClientSessionChannel clientSessionChannel, Message message) {
         if (logSuccess && message.isSuccessful()) {
             OMSPost.main(customer_id, log_type, log_type, message, clientSessionChannel.getId(), 'Success');
         }
@@ -30,15 +30,5 @@ public class LoggingListener implements ClientSessionChannel.MessageListener {
         if (logFailure && !message.isSuccessful()) {
             OMSPost.main(customer_id, log_type, log_type, message, clientSessionChannel.getId(), 'Failure');
         }
-    }
-
-    private void printPrefix() {
-        System.out.print("[" + timeNow() + "] ");
-    }
-
-    private String timeNow() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        Date now = new Date();
-        return dateFormat.format(now);
     }
 }
