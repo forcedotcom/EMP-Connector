@@ -41,7 +41,7 @@ public class OMSLoggingListener implements ClientSessionChannel.MessageListener 
         if (logSuccess && message.isSuccessful()) {
             OMSPost.main(inputArguments_s);
         }
-`
+
         if (logFailure && !message.isSuccessful()) {
             OMSPost.main(inputArguments_f);
         }
