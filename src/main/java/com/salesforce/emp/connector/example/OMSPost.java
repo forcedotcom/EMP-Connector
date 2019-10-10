@@ -18,9 +18,12 @@ public class OMSPost {
 		String encodedHash = "";
 		String url = "";
 
-		// String for signing the key
-		String stringToSign="POST\n" + json.length() + "\napplication/json\nx-ms-date:" + timeNow() + "\n/api/logs";
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss O");
+        Date now = new Date();
+        String nowStr = dateFormat.format(now);
 
+		// String for signing the key
+		String stringToSign="POST\n" + json.length() + "\napplication/json\nx-ms-date:" + nowStr + "\n/api/logs";
 
 		try {
 			byte[] decodedBytes = Base64.decodeBase64(shared_key);
@@ -58,10 +61,4 @@ public class OMSPost {
 			System.out.println("Catch statement: " + e);
 		}
 	}
-
-	private String timeNow() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss O");
-        Date now = new Date();
-        return dateFormat.format(now);
-    }
 }
