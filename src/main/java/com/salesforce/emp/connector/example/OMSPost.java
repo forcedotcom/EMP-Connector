@@ -12,26 +12,8 @@ import java.util.Base64;
 
 public class OMSPost {
 
-	public static void main(String[] args) {
+	public static void main(String customer_id, String shared_key, String log_type, String json, String clientSessionChannel_Id, String flag) {
 
-		// Update the customer ID to your Operations Management Suite workspace ID
-		String customer_id = args[0];
-
-		// For the shared key, use either the primary or the secondary Connected Sources client authentication key
-		String shared_key = args[1];
-
-		// The log type is the name of the event that is being submitted
-		String log_type = args[2];
-		
-		// Input to OMS Log Analytics
-		String json = args[3];
-
-		// Log channel origin ID
-		String clientSessionChannel_Id = args[4];
-
-		// Log flag: either success or Failure
-		String flag = args[5];				
-		
 		String Signature = "";
 		String encodedHash = "";
 		String url = "";
