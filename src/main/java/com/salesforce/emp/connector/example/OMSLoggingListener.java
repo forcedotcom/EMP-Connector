@@ -33,8 +33,8 @@ public class OMSLoggingListener implements ClientSessionChannel.MessageListener 
     @Override
     public void onMessage(ClientSessionChannel clientSessionChannel, Message message) {
         
-        private String clientSessionChannel_Id = "\"" + clientSessionChannel.getId() + "\""
-        private String log = "\"" + message + "\""
+        private String clientSessionChannel_Id = "\"" + clientSessionChannel.getId() + "\"";
+        private String log = "\"" + message + "\"";
 
         if (logSuccess && message.isSuccessful()) {
             OMSPost.main(customer_id, log_type, log_type, log, clientSessionChannel_Id, "Success");
