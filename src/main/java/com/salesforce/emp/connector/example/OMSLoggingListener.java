@@ -37,11 +37,11 @@ public class OMSLoggingListener implements ClientSessionChannel.MessageListener 
         String log = "\"" + message + "\"";
 
         if (logSuccess && message.isSuccessful()) {
-            OMSPost.main(customer_id, log_type, log_type, log, clientSessionChannel_Id, "Success");
+            OMSPost.main(customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Success");
         }
 
         if (logFailure && !message.isSuccessful()) {
-            OMSPost.main(customer_id, log_type, log_type, log, clientSessionChannel_Id, "Failure");
+            OMSPost.main(customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Failure");
         }
     }
 }

@@ -13,14 +13,14 @@ import java.time.ZonedDateTime;
 
 public class OMSPost {
 
-	public static void main(String customer_id, String shared_key, String log_type, String json, String clientSessionChannel_Id, String flag) {
+	public static void main(String args[]) {
 
-        this.customer_id             = customer_id;
-        this.shared_key              = shared_key;
-        this.log_type                = log_type;
-        this.json                    = json;
-        this.clientSessionChannel_Id = clientSessionChannel_Id;
-		this.flag                    = flag;
+		String customer_id = args[0];
+		String shared_key = args[1];
+		String log_type = args[2];
+		String json = args[3];
+		String clientSessionChannel_Id = args[4];
+		String flag = args[5];
 
 		String Signature = "";
 		String encodedHash = "";
