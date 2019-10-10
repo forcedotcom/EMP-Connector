@@ -35,13 +35,15 @@ public class OMSLoggingListener implements ClientSessionChannel.MessageListener 
         
         String clientSessionChannel_Id = "\"" + clientSessionChannel.getId() + "\"";
         String log = "\"" + message + "\"";
+        String[] inputArguments_s = {customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Success"};
+        String[] inputArguments_f = {customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Failure"};   
 
         if (logSuccess && message.isSuccessful()) {
-            OMSPost.main(customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Success");
+            OMSPost.main(inputArguments_s);
         }
-
+`
         if (logFailure && !message.isSuccessful()) {
-            OMSPost.main(customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Failure");
+            OMSPost.main(inputArguments_f);
         }
     }
 }
