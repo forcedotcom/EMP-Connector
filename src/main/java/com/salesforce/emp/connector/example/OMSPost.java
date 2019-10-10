@@ -9,7 +9,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.xml.bind.DatatypeConverter;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 public class OMSPost {
 
@@ -26,8 +26,8 @@ public class OMSPost {
 		String encodedHash = "";
 		String url = "";
 
-		LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
+ 		ZonedDateTime now = ZonedDateTime.now();
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'");
         String nowStr = f.format(now);
 
 		// String for signing the key
