@@ -47,7 +47,7 @@ public class OMSRedirectExample {
         BayeuxParameters params = tokenProvider.login();
 
         EmpConnector connector = new EmpConnector(params);
-        OMSLoggingListener loggingListener = new OMSLoggingListener(true, true, argv[5],  argv[6], argv[7]);
+        OMSLoggingListener loggingListener = new OMSLoggingListener(true, true, argv[4],  argv[5], argv[6]);
 
         connector.addListener(META_HANDSHAKE, loggingListener)
                 .addListener(META_CONNECT, loggingListener)
@@ -60,8 +60,8 @@ public class OMSRedirectExample {
         connector.start().get(5, TimeUnit.SECONDS);
 
         long replayFrom = EmpConnector.REPLAY_FROM_EARLIEST;
-        if (argv.length == 5) {
-            replayFrom = Long.parseLong(argv[4]);
+        if (argv.length == 8) {
+            replayFrom = Long.parseLong(argv[7]);
         }
         TopicSubscription subscription;
         try {
