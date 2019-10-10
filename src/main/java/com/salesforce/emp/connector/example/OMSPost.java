@@ -15,6 +15,13 @@ public class OMSPost {
 
 	public static void main(String customer_id, String shared_key, String log_type, String json, String clientSessionChannel_Id, String flag) {
 
+        this.customer_id             = customer_id;
+        this.shared_key              = shared_key;
+        this.log_type                = log_type;
+        this.json                    = json;
+        this.clientSessionChannel_Id = clientSessionChannel_Id;
+		this.flag                    = flag;
+
 		String Signature = "";
 		String encodedHash = "";
 		String url = "";
@@ -24,7 +31,7 @@ public class OMSPost {
         String nowStr = f.format(now);
 
 		// String for signing the key
-		String stringToSign="POST\n" + json.length() + "\napplication/json\nx-ms-date:" + nowStr + "\n/api/logs";
+		String stringToSign = "POST\n" + json.length() + "\napplication/json\nx-ms-date:" + nowStr + "\n/api/logs";
 
 		System.out.println("\nDEBUG. stringToSign : " + stringToSign);
 		System.out.println("\nDEBUG. message : "  + json);
@@ -40,7 +47,6 @@ public class OMSPost {
 			Signature = "SharedKey " + customer_id + ":" + encodedHash;
 	    
 			System.out.println("\nDEBUG. Signature : " + Signature);
-
 
 			url = "https://" + customer_id + ".ods.opinsights.azure.com/api/logs?api-version=2016-04-01";	    
 			URL objUrl = new URL(url);
