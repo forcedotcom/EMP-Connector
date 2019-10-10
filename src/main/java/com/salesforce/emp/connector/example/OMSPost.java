@@ -8,7 +8,7 @@ import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.bind.DatatypeConverter;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 public class OMSPost {
 
@@ -18,9 +18,9 @@ public class OMSPost {
 		String encodedHash = "";
 		String url = "";
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss O");
-        Date now = new Date();
-        String nowStr = dateFormat.format(now);
+ 		ZonedDateTime now = ZonedDateTime.now();
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
+        String nowStr = f.format(now);
 
 		// String for signing the key
 		String stringToSign="POST\n" + json.length() + "\napplication/json\nx-ms-date:" + nowStr + "\n/api/logs";
