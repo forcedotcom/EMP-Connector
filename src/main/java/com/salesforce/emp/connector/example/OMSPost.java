@@ -7,10 +7,8 @@ import java.io.DataOutputStream;
 import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.bind.DatatypeConverter;
-import java.util.Date;
-import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
-
+import java.util.Date;
 
 public class OMSPost {
 
@@ -20,13 +18,8 @@ public class OMSPost {
 		String encodedHash = "";
 		String url = "";
 
-		//Create Log Analytics compatible formatter
-		Date now = new Date();
-		DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
-		String timeNow = f.format(now);
- 
 		// String for signing the key
-		String stringToSign="POST\n" + json.length() + "\napplication/json\nx-ms-date:"+timeNow+"\n/api/logs";
+		String stringToSign="POST\n" + json.length() + "\napplication/json\nx-ms-date:" + timeNow() + "\n/api/logs";
 
 
 		try {
@@ -65,4 +58,10 @@ public class OMSPost {
 			System.out.println("Catch statement: " + e);
 		}
 	}
+
+	private String timeNow() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss O");
+        Date now = new Date();
+        return dateFormat.format(now);
+    }
 }
