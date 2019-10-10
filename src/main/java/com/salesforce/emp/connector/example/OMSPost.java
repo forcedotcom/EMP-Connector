@@ -27,7 +27,7 @@ public class OMSPost {
 		String url = "";
 
  		ZonedDateTime now = ZonedDateTime.now();
-        DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'");
         String nowStr = f.format(now);
 
 		// String for signing the key
