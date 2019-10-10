@@ -47,7 +47,7 @@ public class OMSRedirectExample {
         BayeuxParameters params = tokenProvider.login();
 
         EmpConnector connector = new EmpConnector(params);
-        OMSLoggingListener loggingListener = new OMSLoggingListener(true, true, args[5],  args[6], args[7]);
+        OMSLoggingListener loggingListener = new OMSLoggingListener(true, true, argv[5],  argv[6], argv[7]);
 
         connector.addListener(META_HANDSHAKE, loggingListener)
                 .addListener(META_CONNECT, loggingListener)

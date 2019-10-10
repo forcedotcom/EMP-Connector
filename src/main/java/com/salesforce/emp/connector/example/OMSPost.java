@@ -69,6 +69,8 @@ public class OMSPost {
 
 			int responseCode = con.getResponseCode();
 			System.out.println("\nSending 'POST' request to URL : " + url);
+			System.out.println("\nSalesforce channel ID : " + clientSessionChannel_Id);
+			System.out.println("\nSalesforce message  status : " + flag);
 			System.out.println("Post parameters : " + json);
 			System.out.println("Response Code : " + responseCode);
 		}

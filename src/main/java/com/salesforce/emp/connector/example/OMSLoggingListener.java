@@ -24,11 +24,11 @@ public class LoggingListener implements ClientSessionChannel.MessageListener {
     @Override
     public void onMessage(ClientSessionChannel clientSessionChannel, Message message, String customer_id, String shared_key, String log_type) {
         if (logSuccess && message.isSuccessful()) {
-            OMSPost(customer_id, log_type, log_type, message, clientSessionChannel.getId(), 'Success')
+            OMSPost.main(customer_id, log_type, log_type, message, clientSessionChannel.getId(), 'Success');
         }
 
         if (logFailure && !message.isSuccessful()) {
-            OMSPost(customer_id, log_type, log_type, message, clientSessionChannel.getId(), 'Failure')
+            OMSPost.main(customer_id, log_type, log_type, message, clientSessionChannel.getId(), 'Failure');
         }
     }
 
