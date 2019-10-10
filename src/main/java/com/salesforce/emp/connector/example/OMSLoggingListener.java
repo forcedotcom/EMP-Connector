@@ -10,15 +10,24 @@ public class OMSLoggingListener implements ClientSessionChannel.MessageListener 
 
     private boolean logSuccess;
     private boolean logFailure;
+    private String  customer_id;
+    private String  shared_key;
+    private String  log_type;
 
     public OMSLoggingListener() {
-        this.logSuccess = true;
-        this.logFailure = true;
+        this.logSuccess  = true;
+        this.logFailure  = true;
+        this.customer_id = "";
+        this.shared_key  = "";
+        this.log_type    = "";        
     }
 
     public OMSLoggingListener(boolean logSuccess, boolean logFailure, String customer_id, String shared_key, String log_type) {
-        this.logSuccess = logSuccess;
-        this.logFailure = logFailure;
+        this.logSuccess  = logSuccess;
+        this.logFailure  = logFailure;
+        this.customer_id = customer_id;
+        this.shared_key  = shared_key;
+        this.log_type    = log_type;
     }
 
     @Override
