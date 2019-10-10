@@ -1,3 +1,5 @@
+package com.salesforce.emp.connector.example;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
