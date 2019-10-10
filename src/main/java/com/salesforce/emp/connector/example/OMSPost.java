@@ -17,12 +17,15 @@ public class OMSPost {
 		String encodedHash = "";
 		String url = "";
 
-		// Date object
-		Date date = new Date();
-
-		// Todays date input for OMS Log Analytics
-		String timeNow = String.format("%ta, %<td %<tb %<tY %<tH:%<tM:%<tS GMT", date );
-   
+		//Create Log Analytics compatible formatter
+		DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
+		
+		//Zoned datetime instance
+		ZonedDateTime zdt = ZonedDateTime.now();
+		
+		//Get formatted String
+		String timeNow = f.format(zdt);
+ 
 		// String for signing the key
 		String stringToSign="POST\n" + json.length() + "\napplication/json\nx-ms-date:"+timeNow+"\n/api/logs";
 
