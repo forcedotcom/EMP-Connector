@@ -9,6 +9,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.xml.bind.DatatypeConverter;
 import java.util.Date;
 import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
 
 
 public class OMSPost {
@@ -20,13 +21,9 @@ public class OMSPost {
 		String url = "";
 
 		//Create Log Analytics compatible formatter
+		Date now = new Date();
 		DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
-		
-		//Zoned datetime instance
-		ZonedDateTime zdt = ZonedDateTime.now();
-		
-		//Get formatted String
-		String timeNow = f.format(zdt);
+		String timeNow = f.format(now);
  
 		// String for signing the key
 		String stringToSign="POST\n" + json.length() + "\napplication/json\nx-ms-date:"+timeNow+"\n/api/logs";
