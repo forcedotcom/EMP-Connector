@@ -52,6 +52,9 @@ The `LoginExample` class is the default class that EMP Connector executes. This 
 ### `DevLoginExample`
 The `DevLoginExample` class accepts a custom login URL, such as a sandbox instance (https://test.salesforce.com). Also, `DevLoginExample` logs to the console the Bayeux connection messages received on the `/meta` channels, such as `/meta/handshake` and `/meta/connect`.
 
+### `OMSRedirectExample`
+The `OMSRedirectExample` class accepts a custom login URL, such as a sandbox instance (https://test.salesforce.com). Also, `OMSRedirectExample` logs to Azure Log Analytics.
+
 ### `BearerTokenExample`
 The `BearerTokenExample` class uses the OAuth bearer token authentication and accepts an access token.
 
@@ -68,6 +71,10 @@ To run EMP Connector using the `LoginExample` class with username and password a
 To run EMP Connector using the `DevLoginExample` class with username and password authentication, use this command.
 
 `$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.DevLoginExample <login_URL> <username> <password> <channel> [optional_replay_id]`
+
+To run EMP Connector using the `OMSRedirectExample` class with username and password authentication, use this command.
+
+`$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.DevLoginExample <login_URL> <username> <password> <channel> <oms_workspace_id> <oms_workspace_key> <oms_workspace_logtype>  [optional_replay_id]`
 
 To run EMP Connector using an OAuth access token, use this command.
 
