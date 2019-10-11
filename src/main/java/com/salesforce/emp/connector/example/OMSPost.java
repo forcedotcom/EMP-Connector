@@ -10,6 +10,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 
 public class OMSPost {
 
@@ -27,15 +28,22 @@ public class OMSPost {
 		String url = "";
 
  		ZonedDateTime now = ZonedDateTime.now();
-        DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'");
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
         String nowStr = f.format(now);
+		System.out.println("\nDEBUG. ZonedDateTime : " + nowStr);
+
+		LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
+        String timeNow = f.format(now);
+        System.out.println("\nDEBUG. LocalDateTime : " + timeNow);
+
 
 		// String for signing the key
 		String stringToSign = "POST\n" + json.length() + "\napplication/json\nx-ms-date:" + nowStr + "\n/api/logs";
 
 		System.out.println("\nDEBUG. stringToSign : " + stringToSign);
 		System.out.println("\nDEBUG. message : "  + json);
-
+		
 		try {
 			byte[] decodedBytes = Base64.decodeBase64(shared_key);
 
