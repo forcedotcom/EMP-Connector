@@ -36,7 +36,7 @@ public class OMSRedirectExample {
         }
         //Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", JSON.toString(event)));
 
-        Consumer<Map<String, Object>> consumer = event -> { String eventAsJson = JSON.toString(event) };
+        Consumer<Map<String, Object>> consumer = event -> { String eventAsJson = JSON.toString(event); };
 
         BearerTokenProvider tokenProvider = new BearerTokenProvider(() -> {
             try {
