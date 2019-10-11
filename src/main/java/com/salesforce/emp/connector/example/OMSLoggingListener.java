@@ -6,6 +6,8 @@ import org.cometd.bayeux.client.ClientSessionChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.eclipse.jetty.util.ajax.JSON;
+
 public class OMSLoggingListener implements ClientSessionChannel.MessageListener {
 
     private boolean logSuccess;
@@ -21,33 +23,38 @@ public class OMSLoggingListener implements ClientSessionChannel.MessageListener 
         this.logFailure  = true;
         this.customer_id = "";
         this.shared_key  = "";
-        this.log_type    = "";
-        this.json_log    = "";           
+        this.log_type    = "";        
     }
 
-    public OMSLoggingListener(boolean logSuccess, boolean logFailure, String customer_id, String shared_key, String log_type, String json_log) {
+    public OMSLoggingListener(boolean logSuccess, boolean logFailure, String customer_id, String shared_key, String log_type) {
         this.logSuccess  = logSuccess;
         this.logFailure  = logFailure;
         this.customer_id = customer_id;
         this.shared_key  = shared_key;
         this.log_type    = log_type;
-        this.json_log    = json_log; 
     }
 
     @Override
     public void onMessage(ClientSessionChannel clientSessionChannel, Message message) {
         
-        String clientSessionChannel_Id = "\"" + clientSessionChannel.getId() + "\"";
-        String log = "\"" + json_log + "\"";
-        String[] inputArguments_s = {customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Success"};
-        String[] inputArguments_f = {customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Failure"};   
+        Consumer<Map<String, Object>> consumer = event -> { 
+            String eventAsJson = JSON.toString(event);
 
-        if (logSuccess && message.isSuccessful()) {
-            OMSPost.main(inputArguments_s);
-        }
+            String clientSessionChannel_Id = "\"" + clientSessionChannel.getId() + "\"";
+            String log = "\"[" + eventAsJson + "]\"";
 
-        if (logFailure && !message.isSuccessful()) {
-            OMSPost.main(inputArguments_f);
-        }
+            System.out.println("\nDEBUG. log : " + log);
+
+            String[] inputArguments_s = {customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Success"};
+            String[] inputArguments_f = {customer_id, shared_key, log_type, log, clientSessionChannel_Id, "Failure"};   
+
+            if (logSuccess && message.isSuccessful()) {
+                OMSPost.main(inputArguments_s);
+            }
+
+            if (logFailure && !message.isSuccessful()) {
+                OMSPost.main(inputArguments_f);
+            }
+        };
     }
 }

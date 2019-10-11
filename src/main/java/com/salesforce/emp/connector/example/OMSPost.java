@@ -35,9 +35,6 @@ public class OMSPost {
 		// String for signing the key
 		String stringToSign = "POST\n" + json.length() + "\napplication/json\nx-ms-date:" + nowStr + "\n/api/logs";
 
-		System.out.println("\nDEBUG. stringToSign : " + stringToSign);
-		System.out.println("\nDEBUG. message : "  + json);
-		
 		try {
 			byte[] decodedBytes = Base64.decodeBase64(shared_key);
 
@@ -47,8 +44,6 @@ public class OMSPost {
 		    
 			encodedHash = DatatypeConverter.printBase64Binary(hash);
 			Signature = "SharedKey " + customer_id + ":" + encodedHash;
-	    
-			System.out.println("\nDEBUG. Signature : " + Signature);
 
 			url = "https://" + customer_id + ".ods.opinsights.azure.com/api/logs?api-version=2016-04-01";	    
 			URL objUrl = new URL(url);
