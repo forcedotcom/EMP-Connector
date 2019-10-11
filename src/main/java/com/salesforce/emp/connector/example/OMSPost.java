@@ -28,26 +28,9 @@ public class OMSPost {
 		String encodedHash = "";
 		String url = "";
 
- 		ZonedDateTime now = ZonedDateTime.now();
+ 		ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
         DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
         String nowStr = f.format(now);
-		System.out.println("\nDEBUG. ZonedDateTime : " + nowStr);
-
- 		ZonedDateTime now1 = ZonedDateTime.now(ZoneOffset.UTC);
-        DateTimeFormatter f1 = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
-        String nowStr1 = f1.format(now1);
-		System.out.println("\nDEBUG. ZonedDateTime with ZoneOffset : " + nowStr1);
-
-
-		LocalDateTime now2 = LocalDateTime.now();
-        DateTimeFormatter f2 = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
-        String nowStr2 = f2.format(now2);
-        System.out.println("\nDEBUG. LocalDateTime : " + nowStr2);
-
-		LocalDateTime now3 = LocalDateTime.now(ZoneOffset.UTC);
-        DateTimeFormatter f3 = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
-        String nowStr3 = f3.format(now3);
-        System.out.println("\nDEBUG. LocalDateTime : " + nowStr3);
 
 		// String for signing the key
 		String stringToSign = "POST\n" + json.length() + "\napplication/json\nx-ms-date:" + nowStr + "\n/api/logs";
