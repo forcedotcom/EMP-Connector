@@ -21,8 +21,6 @@ public class OMSPost {
 		String shared_key = args[1];
 		String log_type = args[2];
 		String json = args[3];
-		String clientSessionChannel_Id = args[4];
-		String flag = args[5];
 
 		String Signature = "";
 		String encodedHash = "";
@@ -31,6 +29,8 @@ public class OMSPost {
  		ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
         DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
         String nowStr = f.format(now);
+
+		System.out.println("\nDEBUG. json : " + json);
 
 		// String for signing the key
 		String stringToSign = "POST\n" + json.length() + "\napplication/json\nx-ms-date:" + nowStr + "\n/api/logs";
@@ -62,8 +62,6 @@ public class OMSPost {
 
 			int responseCode = con.getResponseCode();
 			System.out.println("\nSending 'POST' request to URL : " + url);
-			System.out.println("\nSalesforce channel ID : " + clientSessionChannel_Id);
-			System.out.println("\nSalesforce message  status : " + flag);
 			System.out.println("\nPost parameters : " + json);
 			System.out.println("\nResponse Code : " + responseCode);
 		}
