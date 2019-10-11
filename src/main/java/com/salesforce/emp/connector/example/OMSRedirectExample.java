@@ -39,15 +39,10 @@ public class OMSRedirectExample {
         Consumer<Map<String, Object>> consumer = event -> { 
 
             String log_message = "\"[" + JSON.toString(event) + "]\"";
-
             System.out.println("\nDEBUG. log before OMSPost call: " + log_message);
-
-            String[] inputArguments = {customer_id, shared_key, log_type, log_message};
-
+            String[] inputArguments = {argv[4],  argv[5], argv[6], log_message};
             OMSPost.main(inputArguments);
         };
-
-
 
         BearerTokenProvider tokenProvider = new BearerTokenProvider(() -> {
             try {
@@ -61,7 +56,7 @@ public class OMSRedirectExample {
 
         EmpConnector connector = new EmpConnector(params);
 
-        OMSLoggingListener loggingListener = new OMSLoggingListener(true, true, argv[4],  argv[5], argv[6]);
+        LoggingListener loggingListener = new LoggingListener(true, true);
 
         connector.addListener(META_HANDSHAKE, loggingListener)
                 .addListener(META_CONNECT, loggingListener)
