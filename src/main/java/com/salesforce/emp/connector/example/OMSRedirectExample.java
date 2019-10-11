@@ -34,12 +34,10 @@ public class OMSRedirectExample {
             System.err.println("Usage: OMSRedirectExample url username password topic [replayFrom]");
             System.exit(1);
         }
-        //Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", JSON.toString(event)));
 
         Consumer<Map<String, Object>> consumer = event -> { 
 
             String log_message = "[" + JSON.toString(event) + "]";
-            System.out.println("\nDEBUG. log before OMSPost call: " + log_message);
             String[] inputArguments = {argv[4],  argv[5], argv[6], log_message};
             OMSPost.main(inputArguments);
         };

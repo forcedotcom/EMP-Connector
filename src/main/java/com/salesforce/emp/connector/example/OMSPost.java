@@ -30,8 +30,6 @@ public class OMSPost {
         DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss O");
         String nowStr = f.format(now);
 
-		System.out.println("\nDEBUG. json : " + json);
-
 		// String for signing the key
 		String stringToSign = "POST\n" + json.length() + "\napplication/json\nx-ms-date:" + nowStr + "\n/api/logs";
 
