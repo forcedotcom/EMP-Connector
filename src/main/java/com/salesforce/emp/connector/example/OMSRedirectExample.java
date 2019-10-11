@@ -34,7 +34,9 @@ public class OMSRedirectExample {
             System.err.println("Usage: OMSRedirectExample url username password topic [replayFrom]");
             System.exit(1);
         }
-        Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", JSON.toString(event)));
+        #Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", JSON.toString(event)));
+
+        Consumer<Map<String, Object>> consumer = event -> { String eventAsJson = JSON.toString(event) };
 
         BearerTokenProvider tokenProvider = new BearerTokenProvider(() -> {
             try {
@@ -47,7 +49,10 @@ public class OMSRedirectExample {
         BayeuxParameters params = tokenProvider.login();
 
         EmpConnector connector = new EmpConnector(params);
-        String json_log = "[" + JSON.toString(event) + "]";
+        String json_log = "[" + eventAsJson + "]";
+        System.out.println("\nDEBUG. eventAsJson : " + eventAsJson);
+        System.out.println("\nDEBUG. json_log : " + json_log);
+
         OMSLoggingListener loggingListener = new OMSLoggingListener(true, true, argv[4],  argv[5], argv[6], json_log);
 
         connector.addListener(META_HANDSHAKE, loggingListener)
