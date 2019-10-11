@@ -36,7 +36,6 @@ public class OMSRedirectExample {
         }
 
         Consumer<Map<String, Object>> consumer = event -> { 
-
             String log_message = "[" + JSON.toString(event) + "]";
             String[] inputArguments = {argv[4],  argv[5], argv[6], log_message};
             OMSPost.main(inputArguments);

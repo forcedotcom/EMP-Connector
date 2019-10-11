@@ -60,7 +60,7 @@ public class OMSPost {
 
 			int responseCode = con.getResponseCode();
 			System.out.println("\nSending 'POST' request to URL : " + url);
-			System.out.println("\nPost parameters : " + json);
+			System.out.println("\nPosted log message : " + json);
 			System.out.println("\nResponse Code : " + responseCode);
 		}
 		catch (Exception e) {
