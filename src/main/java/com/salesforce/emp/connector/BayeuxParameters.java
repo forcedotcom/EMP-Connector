@@ -60,7 +60,7 @@ public interface BayeuxParameters {
     default Map<String, Object> longPollingOptions() {
         Map<String, Object> options = new HashMap<>();
         options.put("maxNetworkDelay", maxNetworkDelay());
-        options.put("maxBufferSize", maxBufferSize());
+        options.put("maxMessageSize", maxBufferSize());
         return options;
     }
 
