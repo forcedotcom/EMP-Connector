@@ -69,7 +69,7 @@ public interface BayeuxParameters {
      *         messages
      */
     default int maxBufferSize() {
-        return 1048576;
+        return 10485760;
     }
 
     /**
