@@ -27,14 +27,13 @@ import static org.cometd.bayeux.Channel.*;
  * @author hal.hildebrand
  * @since API v37.0
  */
-public class DevLoginExample {
+public abstract class DevLoginExample {
 
-    public static void main(String[] argv) throws Throwable {
+    public void processEvents(String[] argv) throws Throwable {
         if (argv.length < 4 || argv.length > 5) {
             System.err.println("Usage: DevLoginExample url username password topic [replayFrom]");
             System.exit(1);
         }
-        Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", JSON.toString(event)));
 
         BearerTokenProvider tokenProvider = new BearerTokenProvider(() -> {
             try {
@@ -65,7 +64,7 @@ public class DevLoginExample {
         }
         TopicSubscription subscription;
         try {
-            subscription = connector.subscribe(argv[3], replayFrom, consumer).get(5, TimeUnit.SECONDS);
+            subscription = connector.subscribe(argv[3], replayFrom, getConsumer()).get(5, TimeUnit.SECONDS);
         } catch (ExecutionException e) {
             System.err.println(e.getCause().toString());
             System.exit(1);
@@ -78,4 +77,6 @@ public class DevLoginExample {
 
         System.out.println(String.format("Subscribed: %s", subscription));
     }
+
+    public abstract Consumer<Map<String, Object>> getConsumer();
 }
