@@ -50,7 +50,13 @@ Several example classes are provided to subscribe to a channel. All classes cont
 The `LoginExample` class is the default class that EMP Connector executes. This class authenticates to your production Salesforce org using your Salesforce username and password.
 
 ### `DevLoginExample`
-The `DevLoginExample` class accepts a custom login URL, such as a sandbox instance (https://test.salesforce.com). Also, `DevLoginExample` logs to the console the Bayeux connection messages received on the `/meta` channels, such as `/meta/handshake` and `/meta/connect`.
+The `DevLoginExample` is an abstract class accepts a custom login URL, such as a sandbox instance (https://test.salesforce.com). Also, `DevLoginExample` logs to the console the Bayeux connection messages received on the `/meta` channels, such as `/meta/handshake` and `/meta/connect`. Subclasses of this class shuold provide an implementation for a consumer which consumes events.
+
+### `DevLoginSynchronousEventProcessingExample`
+The `DevLoginSynchronousEventProcessingExample` is a subclass of DevLoginExample. It processes events in synchronous fashion.
+
+### `DevLoginAsynchronousEventProcessingExample`
+The `DevLoginAsynchronousEventProcessingExample` is a subclass of DevLoginExample. It processes event in asynchronous fashion.
 
 ### `BearerTokenExample`
 The `BearerTokenExample` class uses the OAuth bearer token authentication and accepts an access token.
@@ -119,3 +125,4 @@ For a full example, see [LoginExample.java](src/main/java/com/salesforce/emp/con
 ## Documentation
 For more information about the components of the EMP Connector and a walkthrough, see the [Java Client Example](https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/code_sample_java_client_intro.htm)
  in the *Streaming API Developer Guide*.
+
