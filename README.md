@@ -50,7 +50,13 @@ Several example classes are provided to subscribe to a channel. All classes cont
 The `LoginExample` class is the default class that EMP Connector executes. This class authenticates to your production Salesforce org using your Salesforce username and password.
 
 ### `DevLoginExample`
-The `DevLoginExample` class accepts a custom login URL, such as a sandbox instance (https://test.salesforce.com). Also, `DevLoginExample` logs to the console the Bayeux connection messages received on the `/meta` channels, such as `/meta/handshake` and `/meta/connect`.
+The `DevLoginExample` is an abstract class accepts a custom login URL, such as a sandbox instance (https://test.salesforce.com). Also, `DevLoginExample` logs to the console the Bayeux connection messages received on the `/meta` channels, such as `/meta/handshake` and `/meta/connect`. Subclasses of this class shuold provide an implementation for a consumer which consumes events.
+
+### `DevLoginSynchronousEventProcessingExample`
+The `DevLoginSynchronousEventProcessingExample` is a subclass of DevLoginExample. It processes events in synchronous fashion.
+
+### `DevLoginAsynchronousEventProcessingExample`
+The `DevLoginAsynchronousEventProcessingExample` is a subclass of DevLoginExample. It processes event in asynchronous fashion.
 
 ### `BearerTokenExample`
 The `BearerTokenExample` class uses the OAuth bearer token authentication and accepts an access token.
@@ -101,6 +107,9 @@ To add logging support to your connection, first create an instance of the `Logg
 
 The [DevLoginExample](src/main/java/com/salesforce/emp/connector/example/DevLoginExample.java) class uses `LoggingListener` to log the messages received.
 
+## Buffer Size for Received Batch of Events
+EMP Connector buffers the batch of events received using the CometD library. The buffer size is set in [BayeuxParameters.java](src/main/java/com/salesforce/emp/connector/BayeuxParameters.java), in `maxBufferSize()`. Ensure that the buffer size is large enough to hold all event messages in the batch. The buffer size needed depends on the publishing rate and the event message size. At a minimum, set the buffer size to 10 MB, and adjust it higher if needed.
+
 ## Reauthentication
 Authentication becomes invalid when a Salesforce session is invalidated or an access token is revoked. EMP connector listens to `401::Authentication invalid` error messages that Streaming API sends when the authentication is no longer valid. To reauthenticate after a 401 error is received, call the `EmpConnector.setBearerTokenProvider()` method, which accepts a function that reauthenticates and returns a new session ID or access token.
 
@@ -116,3 +125,4 @@ For a full example, see [LoginExample.java](src/main/java/com/salesforce/emp/con
 ## Documentation
 For more information about the components of the EMP Connector and a walkthrough, see the [Java Client Example](https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/code_sample_java_client_intro.htm)
  in the *Streaming API Developer Guide*.
+
