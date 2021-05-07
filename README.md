@@ -10,56 +10,20 @@ Please note that this repository is example code and is not supported by Salesfo
 This code is provided as an example only.  The underlying [CometD library](https://cometd.org/) is what provides the meat here, as EMP Connector is a thin wrapper around this library.
 ___
 
-## Example Usage
-
-
-    // Replay from the start of the event window - may be any valid replayFrom position in the event stream
-    long replayFrom = EmpConnector.REPLAY_FROM_EARLIEST;
-
-    // get parameters from login
-    BayeuxParameters params = login("foo@bar.com", "password");
-
-    // The event consumer
-    Consumer<Map<String, Object>> consumer = event -> System.out.println(String.format("Received:\n%s", event));
-
-    // The EMP connector
-    EmpConnector connector = new EmpConnector(params);
-
-    // Wait for handshake with Streaming API
-    connector.start().get(5, TimeUnit.SECONDS);
-
-    // Subscribe to a channel
-    // Block and wait for the subscription to succeed for 5 seconds
-    TopicSubscription subscription = connector.subscribe("<Channel>", replayFrom, consumer).get(5, TimeUnit.SECONDS);
-
-    // Here's our subscription
-    System.out.println(String.format("Subscribed: %s", subscription));
-
-    // Cancel a subscription
-    subscription.cancel();
-
-    // Stop the connector
-    connector.stop();
-
-See [LoginExample.java](src/main/java/com/salesforce/emp/connector/example/LoginExample.java) for full example.
-
 ## Example Classes
 Several example classes are provided to subscribe to a channel. All classes contain a `main` function that starts the tool. All examples authenticate to Salesforce and subscribe to a channel. Some examples use a different authentication mechanism or provide verbose logging.
 
+All classes process events asynchronously in a separate thread. This ensures that EMP Connector continues to perform `/meta/connect` requests and keeps the session alive on the server.
+Currently, one thread is used for event processing and events are processed in the order they're received. You can increase the number of threads for parallel processing. However, doing so may cause events to not be processed in the order received.
+
 ### `LoginExample`
-The `LoginExample` class is the default class that EMP Connector executes. This class authenticates to your production Salesforce org using your Salesforce username and password.
+The [LoginExample.java](src/main/java/com/salesforce/emp/connector/example/LoginExample.java) class is the default class that EMP Connector executes. This class authenticates to your production Salesforce org using your Salesforce username and password.
 
 ### `DevLoginExample`
-The `DevLoginExample` is an abstract class accepts a custom login URL, such as a sandbox instance (https://test.salesforce.com). Also, `DevLoginExample` logs to the console the Bayeux connection messages received on the `/meta` channels, such as `/meta/handshake` and `/meta/connect`. Subclasses of this class shuold provide an implementation for a consumer which consumes events.
-
-### `DevLoginSynchronousEventProcessingExample`
-The `DevLoginSynchronousEventProcessingExample` is a subclass of DevLoginExample. It processes events in synchronous fashion.
-
-### `DevLoginAsynchronousEventProcessingExample`
-The `DevLoginAsynchronousEventProcessingExample` is a subclass of DevLoginExample. It processes event in asynchronous fashion.
+The [DevLoginExample](src/main/java/com/salesforce/emp/connector/example/DevLoginExample.java) class enables you to pass in a custom login URL, such as a sandbox instance (https://test.salesforce.com). Also, `DevLoginExample` logs to the console the Bayeux connection messages received on the `/meta` channels, such as `/meta/handshake` and `/meta/connect`.
 
 ### `BearerTokenExample`
-The `BearerTokenExample` class uses the OAuth bearer token authentication and accepts an access token.
+The [LoginExample.java](src/main/java/com/salesforce/emp/connector/example/BearerTokenExample.java) class uses the OAuth bearer token authentication and accepts an access token.
 
 ## Build and Execute EMP Connector
 After cloning the project, build EMP Connector using Maven:
@@ -68,6 +32,10 @@ After cloning the project, build EMP Connector using Maven:
 The build generates the jar file in the target subfolder.
 
 To run EMP Connector using the `LoginExample` class with username and password authentication, use this command.
+
+`$ java -jar target/emp-connector-0.0.1-SNAPSHOT-phat.jar <username> <password> <channel> [optional_replay_id]`
+
+To run EMP Connector using the `DevLoginExample` class with username and password authentication, use this command.
 
 `$ java -jar target/emp-connector-0.0.1-SNAPSHOT-phat.jar <username> <password> <channel> [optional_replay_id]`
 
@@ -98,6 +66,7 @@ The [LoggingListener](src/main/java/com/salesforce/emp/connector/example/Logging
 
 To add logging support to your connection, first create an instance of the `LoggingListener` class. The `LoggingListener` constructor accepts two boolean arguments that specify whether to log success and failure messages. Next, call the `EmpConnector.addListener()` method for each meta channel to add logging for and pass in the channel and the `LoggingListener` instance. This example adds logging for multiple channels.
 
+
     LoggingListener loggingListener = new LoggingListener(true, true);
     connector.addListener(META_HANDSHAKE, loggingListener)
              .addListener(META_CONNECT, loggingListener)
@@ -109,6 +78,9 @@ The [DevLoginExample](src/main/java/com/salesforce/emp/connector/example/DevLogi
 
 ## Buffer Size for Received Batch of Events
 EMP Connector buffers the batch of events received using the CometD library. The buffer size is set in [BayeuxParameters.java](src/main/java/com/salesforce/emp/connector/BayeuxParameters.java), in `maxBufferSize()`. Ensure that the buffer size is large enough to hold all event messages in the batch. The buffer size needed depends on the publishing rate and the event message size. At a minimum, set the buffer size to 10 MB, and adjust it higher if needed.
+
+## API Version in the Streaming API Endpoint
+The subscription endpoint for platform events includes the Salesforce API version. You can change the default API version in EMP Connector in [BayeuxParameters.java](src/main/java/com/salesforce/emp/connector/BayeuxParameters.java), in `version()`.
 
 ## Reauthentication
 Authentication becomes invalid when a Salesforce session is invalidated or an access token is revoked. EMP connector listens to `401::Authentication invalid` error messages that Streaming API sends when the authentication is no longer valid. To reauthenticate after a 401 error is received, call the `EmpConnector.setBearerTokenProvider()` method, which accepts a function that reauthenticates and returns a new session ID or access token.
@@ -124,5 +96,4 @@ For a full example, see [LoginExample.java](src/main/java/com/salesforce/emp/con
 
 ## Documentation
 For more information about the components of the EMP Connector and a walkthrough, see the [Java Client Example](https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/code_sample_java_client_intro.htm)
- in the *Streaming API Developer Guide*.
-
+in the *Streaming API Developer Guide*.
