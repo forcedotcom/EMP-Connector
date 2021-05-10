@@ -13,9 +13,7 @@ import com.salesforce.emp.connector.TopicSubscription;
 
 import java.net.URL;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import org.eclipse.jetty.util.ajax.JSON;
 
@@ -27,7 +25,17 @@ import static org.cometd.bayeux.Channel.*;
  * @author hal.hildebrand
  * @since API v37.0
  */
-public abstract class DevLoginExample {
+public class DevLoginExample {
+
+    // More than one thread can be used in the thread pool which leads to parallel processing of events which may be acceptable by the application
+    // The main purpose of asynchronous event processing is to make sure that client is able to perform /meta/connect requests which keeps the session alive on the server side
+    private final ExecutorService workerThreadPool = Executors.newFixedThreadPool(1);
+
+    public static void main(String[] argv) throws Throwable {
+        DevLoginExample devLoginExample = new DevLoginExample();
+        devLoginExample.processEvents(argv);
+    }
+
 
     public void processEvents(String[] argv) throws Throwable {
         if (argv.length < 4 || argv.length > 5) {
@@ -78,5 +86,7 @@ public abstract class DevLoginExample {
         System.out.println(String.format("Subscribed: %s", subscription));
     }
 
-    public abstract Consumer<Map<String, Object>> getConsumer();
+    public Consumer<Map<String, Object>> getConsumer() {
+        return event -> workerThreadPool.submit(() -> System.out.println(String.format("Received:\n%s, \nEvent processed by threadName:%s, threadId: %s", JSON.toString(event), Thread.currentThread().getName(), Thread.currentThread().getId())));
+    }
 }
