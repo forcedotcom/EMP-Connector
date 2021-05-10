@@ -23,7 +23,7 @@ The [LoginExample.java](src/main/java/com/salesforce/emp/connector/example/Login
 The [DevLoginExample](src/main/java/com/salesforce/emp/connector/example/DevLoginExample.java) class enables you to pass in a custom login URL, such as a sandbox instance (https://test.salesforce.com). Also, `DevLoginExample` logs to the console the Bayeux connection messages received on the `/meta` channels, such as `/meta/handshake` and `/meta/connect`.
 
 ### `BearerTokenExample`
-The [LoginExample.java](src/main/java/com/salesforce/emp/connector/example/BearerTokenExample.java) class uses the OAuth bearer token authentication and accepts an access token.
+The [BearerExample.java](src/main/java/com/salesforce/emp/connector/example/BearerTokenExample.java) class uses the OAuth bearer token authentication and accepts an access token.
 
 ## Build and Execute EMP Connector
 After cloning the project, build EMP Connector using Maven:
@@ -32,10 +32,6 @@ After cloning the project, build EMP Connector using Maven:
 The build generates the jar file in the target subfolder.
 
 To run EMP Connector using the `LoginExample` class with username and password authentication, use this command.
-
-`$ java -jar target/emp-connector-0.0.1-SNAPSHOT-phat.jar <username> <password> <channel> [optional_replay_id]`
-
-To run EMP Connector using the `DevLoginExample` class with username and password authentication, use this command.
 
 `$ java -jar target/emp-connector-0.0.1-SNAPSHOT-phat.jar <username> <password> <channel> [optional_replay_id]`
 
