@@ -34,7 +34,7 @@ public class BearerTokenExample {
             System.err.println("Usage: BearerTokenExample url token topic [replayFrom]");
             System.exit(1);
         }
-        long replayFrom = EmpConnector.REPLAY_FROM_EARLIEST;
+        long replayFrom = EmpConnector.REPLAY_FROM_TIP;
         if (argv.length == 4) {
             replayFrom = Long.parseLong(argv[3]);
         }
