@@ -66,7 +66,7 @@ public class DevLoginExample {
 
         connector.start().get(5, TimeUnit.SECONDS);
 
-        long replayFrom = EmpConnector.REPLAY_FROM_EARLIEST;
+        long replayFrom = EmpConnector.REPLAY_FROM_TIP;
         if (argv.length == 5) {
             replayFrom = Long.parseLong(argv[4]);
         }

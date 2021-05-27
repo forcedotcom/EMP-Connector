@@ -38,7 +38,7 @@ public class LoginExample {
             System.err.println("Usage: LoginExample username password topic [replayFrom]");
             System.exit(1);
         }
-        long replayFrom = EmpConnector.REPLAY_FROM_EARLIEST;
+        long replayFrom = EmpConnector.REPLAY_FROM_TIP;
         if (argv.length == 4) {
             replayFrom = Long.parseLong(argv[3]);
         }
@@ -55,7 +55,7 @@ public class LoginExample {
 
         BayeuxParameters params = tokenProvider.login();
 
-        Consumer<Map<String, Object>> consumer = event -> workerThreadPool.submit(() -> System.out.println(String.format("Received:\n%s, \nEvent processed by threadName:%s, threadId: %s", JSON.toString(event), Thread.currentThread().getName(), Thread.currentThread().getId())));
+        Consumer<Map<String, Object>> consumer = event -> workerThreadPool.submit(() -> System.out.println(String.format("Received:\n%s", JSON.toString(event))));
 
         EmpConnector connector = new EmpConnector(params);
 
