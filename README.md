@@ -43,7 +43,7 @@ To run EMP Connector using an OAuth access token, use this command.
 
 `$ java -classpath target/emp-connector-0.0.1-SNAPSHOT-phat.jar com.salesforce.emp.connector.example.BearerTokenExample <instance_URL> <token> <channel> [optional_replay_id]`
 
-The last parameter is the replay ID, which is the position in the stream from which you want to receive event messages. This parameter is optional. If not specified, EMP Connector fetches events starting from the tip, the newly received event messages (-1 option). To receive  stored event messages that are within the retention window, specify -2. Use -2 sparingly. If a large volume of event messages is stored, retrieving all event messages can slow performance. For more information, see [Message Durability](https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/using_streaming_api_durability.htm).
+The last parameter is the replay ID, which is the position in the stream from which you want to receive event messages. This parameter is optional. If not specified, EMP Connector fetches events starting from the tip, the newly received event messages (-1 option). For more information, see [Message Durability](https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/using_streaming_api_durability.htm).
 
 ## Subscription Filtering for PushTopic Channels
 If you subscribe to a PushTopic channel with a filter, enclose the entire channel and filter information within quotes on the command line. Do not use single quotes around field values. Otherwise, EMP Connector doesn't work properly. For example, this command line uses filters on the TestAccount PushTopic.
