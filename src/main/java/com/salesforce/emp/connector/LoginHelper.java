@@ -163,7 +163,7 @@ public class LoginHelper {
     }
 
     private static byte[] soapXmlForLogin(String username, String password) throws UnsupportedEncodingException {
-        return (ENV_START + "  <urn:login>" + "    <urn:username>" + username + "</urn:username>" + "    <urn:password>"
-                + password + "</urn:password>" + "  </urn:login>" + ENV_END).getBytes("UTF-8");
+        return (ENV_START + "  <urn:login><![CDATA[" + "    <urn:username>" + username + "</urn:username>" + "    <urn:password>"
+                + password + "</urn:password>" + "]]></urn:login>" + ENV_END).getBytes("UTF-8");
     }
 }
