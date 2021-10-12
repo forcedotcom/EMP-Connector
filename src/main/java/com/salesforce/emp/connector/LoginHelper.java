@@ -39,7 +39,9 @@ public class LoginHelper {
 
         @Override
         public void characters(char[] ch, int start, int length) {
-            if (reading) buffer = new String(ch, start, length);
+            if (reading) {
+                buffer += new String(ch, start, length);
+            }
         }
 
         @Override
@@ -57,7 +59,7 @@ public class LoginHelper {
                 break;
             default:
             }
-            buffer = null;
+            buffer = "";
         }
 
         @Override
@@ -134,8 +136,9 @@ public class LoginHelper {
             saxParser.parse(new ByteArrayInputStream(response.getContent()), parser);
 
             String sessionId = parser.sessionId;
-            if (sessionId == null || parser.serverUrl == null) { throw new ConnectException(
-                    String.format("Unable to login: %s", parser.faultstring)); }
+            if (sessionId == null || parser.serverUrl == null) {
+                throw new ConnectException(String.format("Unable to login: %s", parser.faultstring));
+            }
 
             URL soapEndpoint = new URL(parser.serverUrl);
             String cometdEndpoint = Float.parseFloat(parameters.version()) < 37 ? COMETD_REPLAY_OLD : COMETD_REPLAY;
@@ -163,7 +166,8 @@ public class LoginHelper {
     }
 
     private static byte[] soapXmlForLogin(String username, String password) throws UnsupportedEncodingException {
-        return (ENV_START + "  <urn:login>" + "    <urn:username>" + username + "</urn:username>" + "    <urn:password>"
-                + password + "</urn:password>" + "  </urn:login>" + ENV_END).getBytes("UTF-8");
+        return (ENV_START + "  <urn:login>" + "    <urn:username>" + username + "</urn:username>"
+                + "    <urn:password><![CDATA[" + password + "]]></urn:password>" + "  </urn:login>" + ENV_END)
+                        .getBytes("UTF-8");
     }
 }
