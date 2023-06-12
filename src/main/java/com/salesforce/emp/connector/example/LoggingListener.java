@@ -2,14 +2,16 @@ package com.salesforce.emp.connector.example;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSessionChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class LoggingListener implements ClientSessionChannel.MessageListener {
 
     private boolean logSuccess;
     private boolean logFailure;
+
+    private static final Logger log = LoggerFactory.getLogger(LoggingListener.class);
 
     public LoggingListener() {
         this.logSuccess = true;
@@ -24,29 +26,12 @@ public class LoggingListener implements ClientSessionChannel.MessageListener {
     @Override
     public void onMessage(ClientSessionChannel clientSessionChannel, Message message) {
         if (logSuccess && message.isSuccessful()) {
-            System.out.println(">>>>");
-            printPrefix();
-            System.out.println("Success:[" + clientSessionChannel.getId() + "]");
-            System.out.println(message);
-            System.out.println("<<<<");
+            log.info("Success:[ {} ], message: {} ", clientSessionChannel.getId(), message);
         }
 
         if (logFailure && !message.isSuccessful()) {
-            System.out.println(">>>>");
-            printPrefix();
-            System.out.println("Failure:[" + clientSessionChannel.getId() + "]");
-            System.out.println(message);
-            System.out.println("<<<<");
+            log.error("Failure:[ {} ], message: {}", clientSessionChannel.getId(), message);
         }
     }
 
-    private void printPrefix() {
-        System.out.print("[" + timeNow() + "] ");
-    }
-
-    private String timeNow() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        Date now = new Date();
-        return dateFormat.format(now);
-    }
 }
