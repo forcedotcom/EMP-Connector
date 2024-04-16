@@ -1,13 +1,13 @@
-# emp-connector Example
+# EMP-Connector Example (Deprecated)
 A simplified connector example to the Enterprise Messaging Platform.
 
 This example connector provides support for SSL, HTTP proxies and supports both the long polling and websocket
-streaming transports.  Easy subscription management and full support for event replay is provided.
+streaming transports.  Easy subscription management and full support for event replay is provided. The connector is a thin wrapper around the underlying [CometD library](https://cometd.org/).
 
 ## Disclaimer
-Please note that this repository is example code and is not supported by Salesforce.  This code has not been rigorously tested nor performance tested for throughput and scale.
+The EMP-Connector sample is deprecated and will be archived in the future. The EMP-Connector code is an example only, is partially implemented, and isn't intended for production environments. It hasn't been rigorously tested nor performance tested for throughput and scale. 
 
-This code is provided as an example only.  The underlying [CometD library](https://cometd.org/) is what provides the meat here, as EMP Connector is a thin wrapper around this library.
+Are you looking for a code sample for subscribing to platform events and change events? Check out the [Java Quick Start for Pub/Sub API](https://developer.salesforce.com/docs/platform/pub-sub-api/guide/qs-java-quick-start.html) in the _Pub/Sub API Guide_.  
 ___
 
 ## Example Classes
