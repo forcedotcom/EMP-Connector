@@ -5,7 +5,7 @@ This example connector provides support for SSL, HTTP proxies and supports both 
 streaming transports.  Easy subscription management and full support for event replay is provided. The connector is a thin wrapper around the underlying [CometD library](https://cometd.org/).
 ___
 ## $\textsf{\textcolor{red}{Disclaimer}}$
-The EMP-Connector sample is deprecated and will be archived in the future. The EMP-Connector code is an example only, is partially implemented, and isn't intended for production environments. It hasn't been rigorously tested nor performance tested for throughput and scale. 
+The EMP-Connector sample is deprecated and will be archived in the future. The EMP-Connector code is an example only and isn't intended for production environments. It hasn't been rigorously tested nor performance tested for throughput and scale. 
 
 Are you looking for a code sample for subscribing to platform events and change events? Check out the [Java Quick Start for Pub/Sub API](https://developer.salesforce.com/docs/platform/pub-sub-api/guide/qs-java-quick-start.html) in the _Pub/Sub API Guide_.  
 ___
